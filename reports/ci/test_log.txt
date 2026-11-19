@@ -3,15 +3,16 @@ platform linux -- Python 3.12.16, pytest-8.3.3, pluggy-1.7.0
 rootdir: /home/runner/work/portfolio-agent/portfolio-agent/projects/se3-load-forecast
 configfile: pytest.ini
 testpaths: tests
-collected 60 items
+collected 66 items
 
-tests/test_calendar.py .........                                         [ 15%]
-tests/test_esett.py ...........                                          [ 33%]
-tests/test_features.py ........                                          [ 46%]
-tests/test_metrics.py .....                                              [ 55%]
-tests/test_pipeline_cli.py ...                                           [ 60%]
-tests/test_quality.py ...........                                        [ 78%]
-tests/test_selection_explore.py ...                                      [ 83%]
+tests/test_backtest.py ......                                            [  9%]
+tests/test_calendar.py .........                                         [ 22%]
+tests/test_esett.py ...........                                          [ 39%]
+tests/test_features.py ........                                          [ 51%]
+tests/test_metrics.py .....                                              [ 59%]
+tests/test_pipeline_cli.py ...                                           [ 63%]
+tests/test_quality.py ...........                                        [ 80%]
+tests/test_selection_explore.py ...                                      [ 84%]
 tests/test_smhi.py ..........                                            [100%]
 
-============================== 60 passed in 4.64s ==============================
+============================== 66 passed in 6.60s ==============================
