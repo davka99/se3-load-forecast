@@ -3,8 +3,8 @@
 How well can tomorrow's hourly electricity use in Sweden's largest bidding zone, SE3
 (Stockholm, Göteborg and Mälardalen), be predicted at noon the day before? This project
 forecasts it from temperature and the calendar, using real settlement data from eSett and
-weather observations from SMHI. Tested on a full held-out year, the forecast is about
-**two-thirds more accurate** than the rule "same hour last week".
+weather observations from SMHI. On a full held-out year its hourly error is about
+**two-thirds lower** than that of the rule "same hour last week".
 
 ![Day-ahead forecast vs actual in the coldest week of the backtest](reports/figures/hero_cold_week.png)
 
@@ -57,8 +57,7 @@ Held-out backtest, 1 Nov 2025 – 31 Oct 2026: 365 forecasts issued at 12:00 the
 - **Replace a seasonal-naive rule with the averaged model.** The gain is large, clearly
   outside the uncertainty, and holds in winter, summer, weekdays, weekends and holidays.
 - **Add a margin at the daily peak hour** or calibrate peak-hour intervals separately.
-  Peaks are where the model is systematically low and where imbalance tends to be
-  expensive.
+  Peaks are where the model is systematically low.
 - **Plan with ≈ 200 MW of extra load per °C of colder daily mean** below 15 °C, more at
   17:00 (231 MW/°C) and 07:00 (219 MW/°C).
 - **Before production:** use a real day-ahead temperature forecast as input, and watch the
