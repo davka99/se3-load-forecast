@@ -1,0 +1,861 @@
+{
+  "window": [
+    "2025-11-01",
+    "2026-10-31"
+  ],
+  "mase_scale_mw": 630.0,
+  "preregistration": "docs/decisions.md D19",
+  "models": {
+    "seasonal_naive_d7": {
+      "n_hours": 8760,
+      "n_missing_forecast": 0,
+      "mae_mw": 567.9,
+      "rmse_mw": 799.1,
+      "mape_pct": 5.95,
+      "mase": 0.901,
+      "bias_mw": -0.8
+    },
+    "naive_d2": {
+      "n_hours": 8760,
+      "n_missing_forecast": 0,
+      "mae_mw": 663.4,
+      "rmse_mw": 876.0,
+      "mape_pct": 7.26,
+      "mase": 1.053,
+      "bias_mw": 2.9
+    },
+    "linear": {
+      "n_hours": 8760,
+      "n_missing_forecast": 0,
+      "mae_mw": 224.8,
+      "rmse_mw": 286.2,
+      "mape_pct": 2.52,
+      "mase": 0.357,
+      "bias_mw": -64.1,
+      "coverage_80_pct": 77.5,
+      "intervals": {
+        "coverage_80_pct": 77.5,
+        "n_days": 365,
+        "wilson95_on_days_pct": [
+          73.0,
+          81.5
+        ],
+        "pinball_q10": 52.8,
+        "pinball_q90": 50.4,
+        "mean_width_mw": 680.2
+      }
+    },
+    "gbm_quantile": {
+      "n_hours": 8760,
+      "n_missing_forecast": 0,
+      "mae_mw": 210.7,
+      "rmse_mw": 271.8,
+      "mape_pct": 2.3,
+      "mase": 0.334,
+      "bias_mw": -46.5,
+      "coverage_80_pct": 67.8,
+      "intervals": {
+        "coverage_80_pct": 67.8,
+        "n_days": 365,
+        "wilson95_on_days_pct": [
+          63.0,
+          72.5
+        ],
+        "pinball_q10": 48.7,
+        "pinball_q90": 55.2,
+        "mean_width_mw": 568.2
+      }
+    },
+    "average": {
+      "n_hours": 8760,
+      "n_missing_forecast": 0,
+      "mae_mw": 198.2,
+      "rmse_mw": 252.8,
+      "mape_pct": 2.19,
+      "mase": 0.315,
+      "bias_mw": -55.3,
+      "coverage_80_pct": 77.9,
+      "intervals": {
+        "coverage_80_pct": 77.9,
+        "n_days": 365,
+        "wilson95_on_days_pct": [
+          73.3,
+          81.8
+        ],
+        "pinball_q10": 46.2,
+        "pinball_q90": 44.6,
+        "mean_width_mw": 624.2
+      }
+    }
+  },
+  "fits": {
+    "linear": [
+      {
+        "model": "linear",
+        "first_target": "2025-11-01",
+        "train_cutoff": "2025-10-30",
+        "train_max_date": "2025-10-30",
+        "n_train": 59712
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-11-29",
+        "train_cutoff": "2025-11-27",
+        "train_max_date": "2025-11-27",
+        "n_train": 60384
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-12-27",
+        "train_cutoff": "2025-12-25",
+        "train_max_date": "2025-12-25",
+        "n_train": 61056
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-01-24",
+        "train_cutoff": "2026-01-22",
+        "train_max_date": "2026-01-22",
+        "n_train": 61728
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-02-21",
+        "train_cutoff": "2026-02-19",
+        "train_max_date": "2026-02-19",
+        "n_train": 62400
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-03-21",
+        "train_cutoff": "2026-03-19",
+        "train_max_date": "2026-03-19",
+        "n_train": 63072
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-04-18",
+        "train_cutoff": "2026-04-16",
+        "train_max_date": "2026-04-16",
+        "n_train": 63743
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-05-16",
+        "train_cutoff": "2026-05-14",
+        "train_max_date": "2026-05-14",
+        "n_train": 64415
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-06-13",
+        "train_cutoff": "2026-06-11",
+        "train_max_date": "2026-06-11",
+        "n_train": 65087
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-07-11",
+        "train_cutoff": "2026-07-09",
+        "train_max_date": "2026-07-09",
+        "n_train": 65759
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-08-08",
+        "train_cutoff": "2026-08-06",
+        "train_max_date": "2026-08-06",
+        "n_train": 66431
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-09-05",
+        "train_cutoff": "2026-09-03",
+        "train_max_date": "2026-09-03",
+        "n_train": 67103
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-10-03",
+        "train_cutoff": "2026-10-01",
+        "train_max_date": "2026-10-01",
+        "n_train": 67775
+      },
+      {
+        "model": "linear",
+        "first_target": "2026-10-31",
+        "train_cutoff": "2026-10-29",
+        "train_max_date": "2026-10-29",
+        "n_train": 68448
+      }
+    ],
+    "gbm_quantile": [
+      {
+        "model": "gbm_quantile",
+        "first_target": "2025-11-01",
+        "train_cutoff": "2025-10-30",
+        "train_max_date": "2025-10-30",
+        "n_train": 59712
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2025-11-29",
+        "train_cutoff": "2025-11-27",
+        "train_max_date": "2025-11-27",
+        "n_train": 60384
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2025-12-27",
+        "train_cutoff": "2025-12-25",
+        "train_max_date": "2025-12-25",
+        "n_train": 61056
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-01-24",
+        "train_cutoff": "2026-01-22",
+        "train_max_date": "2026-01-22",
+        "n_train": 61728
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-02-21",
+        "train_cutoff": "2026-02-19",
+        "train_max_date": "2026-02-19",
+        "n_train": 62400
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-03-21",
+        "train_cutoff": "2026-03-19",
+        "train_max_date": "2026-03-19",
+        "n_train": 63072
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-04-18",
+        "train_cutoff": "2026-04-16",
+        "train_max_date": "2026-04-16",
+        "n_train": 63743
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-05-16",
+        "train_cutoff": "2026-05-14",
+        "train_max_date": "2026-05-14",
+        "n_train": 64415
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-06-13",
+        "train_cutoff": "2026-06-11",
+        "train_max_date": "2026-06-11",
+        "n_train": 65087
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-07-11",
+        "train_cutoff": "2026-07-09",
+        "train_max_date": "2026-07-09",
+        "n_train": 65759
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-08-08",
+        "train_cutoff": "2026-08-06",
+        "train_max_date": "2026-08-06",
+        "n_train": 66431
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-09-05",
+        "train_cutoff": "2026-09-03",
+        "train_max_date": "2026-09-03",
+        "n_train": 67103
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-10-03",
+        "train_cutoff": "2026-10-01",
+        "train_max_date": "2026-10-01",
+        "n_train": 67775
+      },
+      {
+        "model": "gbm_quantile",
+        "first_target": "2026-10-31",
+        "train_cutoff": "2026-10-29",
+        "train_max_date": "2026-10-29",
+        "n_train": 68448
+      }
+    ]
+  },
+  "primary_average_vs_seasonal_naive": {
+    "mae_diff_mw": -369.8,
+    "ci95_mw": [
+      -477.6,
+      -279.0
+    ],
+    "pct_vs_b": -65.1,
+    "dm": {
+      "mean_diff": -369.7197,
+      "statistic": -6.7077,
+      "p_value": 0.0,
+      "n": 365,
+      "nw_lags": 7
+    }
+  },
+  "secondary_average_vs_linear": {
+    "mae_diff_mw": -26.6,
+    "ci95_mw": [
+      -36.5,
+      -16.9
+    ],
+    "pct_vs_b": -11.8,
+    "dm": {
+      "mean_diff": -26.6001,
+      "statistic": -5.0636,
+      "p_value": 0.0,
+      "n": 365,
+      "nw_lags": 7
+    }
+  },
+  "average_vs_gbm": {
+    "mae_diff_mw": -12.5,
+    "ci95_mw": [
+      -23.6,
+      -1.6
+    ],
+    "pct_vs_b": -5.9,
+    "dm": {
+      "mean_diff": -12.5248,
+      "statistic": -2.223,
+      "p_value": 0.0268,
+      "n": 365,
+      "nw_lags": 7
+    }
+  },
+  "linear_vs_gbm": {
+    "mae_diff_mw": 14.1,
+    "ci95_mw": [
+      -4.4,
+      33.3
+    ],
+    "pct_vs_b": 6.7,
+    "dm": {
+      "mean_diff": 14.0753,
+      "statistic": 1.3773,
+      "p_value": 0.1693,
+      "n": 365,
+      "nw_lags": 7
+    }
+  },
+  "mae_ci95_by_model": {
+    "seasonal_naive_d7": [
+      476.8,
+      676.0
+    ],
+    "naive_d2": [
+      609.4,
+      720.7
+    ],
+    "linear": [
+      207.9,
+      243.0
+    ],
+    "gbm_quantile": [
+      194.7,
+      228.1
+    ],
+    "average": [
+      184.8,
+      213.3
+    ]
+  },
+  "segments": [
+    {
+      "segment": "all",
+      "model": "average",
+      "n_hours": 8760,
+      "n_days": 365,
+      "mae_mw": 198.2,
+      "mape_pct": 2.19,
+      "bias_mw": -55.3,
+      "coverage_80_pct": 77.9
+    },
+    {
+      "segment": "all",
+      "model": "gbm_quantile",
+      "n_hours": 8760,
+      "n_days": 365,
+      "mae_mw": 210.7,
+      "mape_pct": 2.3,
+      "bias_mw": -46.5,
+      "coverage_80_pct": 67.8
+    },
+    {
+      "segment": "all",
+      "model": "linear",
+      "n_hours": 8760,
+      "n_days": 365,
+      "mae_mw": 224.8,
+      "mape_pct": 2.52,
+      "bias_mw": -64.1,
+      "coverage_80_pct": 77.5
+    },
+    {
+      "segment": "all",
+      "model": "naive_d2",
+      "n_hours": 8760,
+      "n_days": 365,
+      "mae_mw": 663.4,
+      "mape_pct": 7.26,
+      "bias_mw": 2.9
+    },
+    {
+      "segment": "all",
+      "model": "seasonal_naive_d7",
+      "n_hours": 8760,
+      "n_days": 365,
+      "mae_mw": 567.9,
+      "mape_pct": 5.95,
+      "bias_mw": -0.8
+    },
+    {
+      "segment": "winter (Nov-Mar)",
+      "model": "average",
+      "n_hours": 3623,
+      "n_days": 151,
+      "mae_mw": 210.1,
+      "mape_pct": 1.9,
+      "bias_mw": -31.0,
+      "coverage_80_pct": 77.1
+    },
+    {
+      "segment": "winter (Nov-Mar)",
+      "model": "gbm_quantile",
+      "n_hours": 3623,
+      "n_days": 151,
+      "mae_mw": 241.2,
+      "mape_pct": 2.18,
+      "bias_mw": -8.1,
+      "coverage_80_pct": 70.0
+    },
+    {
+      "segment": "winter (Nov-Mar)",
+      "model": "linear",
+      "n_hours": 3623,
+      "n_days": 151,
+      "mae_mw": 221.0,
+      "mape_pct": 1.99,
+      "bias_mw": -53.8,
+      "coverage_80_pct": 75.8
+    },
+    {
+      "segment": "winter (Nov-Mar)",
+      "model": "naive_d2",
+      "n_hours": 3623,
+      "n_days": 151,
+      "mae_mw": 759.5,
+      "mape_pct": 6.88,
+      "bias_mw": -6.9
+    },
+    {
+      "segment": "winter (Nov-Mar)",
+      "model": "seasonal_naive_d7",
+      "n_hours": 3623,
+      "n_days": 151,
+      "mae_mw": 822.9,
+      "mape_pct": 7.39,
+      "bias_mw": -35.1
+    },
+    {
+      "segment": "summer (Apr-Oct)",
+      "model": "average",
+      "n_hours": 5137,
+      "n_days": 214,
+      "mae_mw": 189.7,
+      "mape_pct": 2.39,
+      "bias_mw": -72.5,
+      "coverage_80_pct": 78.5
+    },
+    {
+      "segment": "summer (Apr-Oct)",
+      "model": "gbm_quantile",
+      "n_hours": 5137,
+      "n_days": 214,
+      "mae_mw": 189.2,
+      "mape_pct": 2.38,
+      "bias_mw": -73.6,
+      "coverage_80_pct": 66.3
+    },
+    {
+      "segment": "summer (Apr-Oct)",
+      "model": "linear",
+      "n_hours": 5137,
+      "n_days": 214,
+      "mae_mw": 227.4,
+      "mape_pct": 2.9,
+      "bias_mw": -71.4,
+      "coverage_80_pct": 78.7
+    },
+    {
+      "segment": "summer (Apr-Oct)",
+      "model": "naive_d2",
+      "n_hours": 5137,
+      "n_days": 214,
+      "mae_mw": 595.7,
+      "mape_pct": 7.52,
+      "bias_mw": 9.8
+    },
+    {
+      "segment": "summer (Apr-Oct)",
+      "model": "seasonal_naive_d7",
+      "n_hours": 5137,
+      "n_days": 214,
+      "mae_mw": 388.1,
+      "mape_pct": 4.93,
+      "bias_mw": 23.4
+    },
+    {
+      "segment": "cold hours (< -5 °C)",
+      "model": "average",
+      "n_hours": 417,
+      "n_days": 30,
+      "mae_mw": 242.6,
+      "mape_pct": 1.84,
+      "bias_mw": -41.3,
+      "coverage_80_pct": 76.0
+    },
+    {
+      "segment": "cold hours (< -5 °C)",
+      "model": "gbm_quantile",
+      "n_hours": 417,
+      "n_days": 30,
+      "mae_mw": 294.9,
+      "mape_pct": 2.25,
+      "bias_mw": 151.0,
+      "coverage_80_pct": 79.4
+    },
+    {
+      "segment": "cold hours (< -5 °C)",
+      "model": "linear",
+      "n_hours": 417,
+      "n_days": 30,
+      "mae_mw": 310.3,
+      "mape_pct": 2.35,
+      "bias_mw": -233.6,
+      "coverage_80_pct": 57.6
+    },
+    {
+      "segment": "cold hours (< -5 °C)",
+      "model": "naive_d2",
+      "n_hours": 417,
+      "n_days": 30,
+      "mae_mw": 706.8,
+      "mape_pct": 5.29,
+      "bias_mw": -399.2
+    },
+    {
+      "segment": "cold hours (< -5 °C)",
+      "model": "seasonal_naive_d7",
+      "n_hours": 417,
+      "n_days": 30,
+      "mae_mw": 796.3,
+      "mape_pct": 6.05,
+      "bias_mw": -613.7
+    },
+    {
+      "segment": "daily peak hour",
+      "model": "average",
+      "n_hours": 365,
+      "n_days": 365,
+      "mae_mw": 233.6,
+      "mape_pct": 2.39,
+      "bias_mw": -130.3,
+      "coverage_80_pct": 68.5
+    },
+    {
+      "segment": "daily peak hour",
+      "model": "gbm_quantile",
+      "n_hours": 365,
+      "n_days": 365,
+      "mae_mw": 235.2,
+      "mape_pct": 2.37,
+      "bias_mw": -141.7,
+      "coverage_80_pct": 61.1
+    },
+    {
+      "segment": "daily peak hour",
+      "model": "linear",
+      "n_hours": 365,
+      "n_days": 365,
+      "mae_mw": 261.6,
+      "mape_pct": 2.71,
+      "bias_mw": -118.8,
+      "coverage_80_pct": 71.8
+    },
+    {
+      "segment": "daily peak hour",
+      "model": "naive_d2",
+      "n_hours": 365,
+      "n_days": 365,
+      "mae_mw": 692.2,
+      "mape_pct": 6.88,
+      "bias_mw": -217.8
+    },
+    {
+      "segment": "daily peak hour",
+      "model": "seasonal_naive_d7",
+      "n_hours": 365,
+      "n_days": 365,
+      "mae_mw": 556.3,
+      "mape_pct": 5.28,
+      "bias_mw": -105.6
+    },
+    {
+      "segment": "holidays and eves",
+      "model": "average",
+      "n_hours": 408,
+      "n_days": 17,
+      "mae_mw": 246.4,
+      "mape_pct": 2.73,
+      "bias_mw": 11.2,
+      "coverage_80_pct": 67.4
+    },
+    {
+      "segment": "holidays and eves",
+      "model": "gbm_quantile",
+      "n_hours": 408,
+      "n_days": 17,
+      "mae_mw": 249.1,
+      "mape_pct": 2.75,
+      "bias_mw": 45.2,
+      "coverage_80_pct": 63.0
+    },
+    {
+      "segment": "holidays and eves",
+      "model": "linear",
+      "n_hours": 408,
+      "n_days": 17,
+      "mae_mw": 280.9,
+      "mape_pct": 3.11,
+      "bias_mw": -22.9,
+      "coverage_80_pct": 67.4
+    },
+    {
+      "segment": "holidays and eves",
+      "model": "naive_d2",
+      "n_hours": 408,
+      "n_days": 17,
+      "mae_mw": 829.0,
+      "mape_pct": 10.21,
+      "bias_mw": 728.2
+    },
+    {
+      "segment": "holidays and eves",
+      "model": "seasonal_naive_d7",
+      "n_hours": 408,
+      "n_days": 17,
+      "mae_mw": 594.6,
+      "mape_pct": 7.16,
+      "bias_mw": 208.0
+    },
+    {
+      "segment": "weekdays",
+      "model": "average",
+      "n_hours": 5976,
+      "n_days": 249,
+      "mae_mw": 196.1,
+      "mape_pct": 2.12,
+      "bias_mw": -52.7,
+      "coverage_80_pct": 78.8
+    },
+    {
+      "segment": "weekdays",
+      "model": "gbm_quantile",
+      "n_hours": 5976,
+      "n_days": 249,
+      "mae_mw": 201.1,
+      "mape_pct": 2.14,
+      "bias_mw": -46.6,
+      "coverage_80_pct": 70.3
+    },
+    {
+      "segment": "weekdays",
+      "model": "linear",
+      "n_hours": 5976,
+      "n_days": 249,
+      "mae_mw": 227.0,
+      "mape_pct": 2.5,
+      "bias_mw": -58.9,
+      "coverage_80_pct": 77.1
+    },
+    {
+      "segment": "weekdays",
+      "model": "naive_d2",
+      "n_hours": 5976,
+      "n_days": 249,
+      "mae_mw": 594.1,
+      "mape_pct": 6.16,
+      "bias_mw": -303.6
+    },
+    {
+      "segment": "weekdays",
+      "model": "seasonal_naive_d7",
+      "n_hours": 5976,
+      "n_days": 249,
+      "mae_mw": 555.5,
+      "mape_pct": 5.66,
+      "bias_mw": -9.9
+    },
+    {
+      "segment": "weekends",
+      "model": "average",
+      "n_hours": 2520,
+      "n_days": 105,
+      "mae_mw": 196.9,
+      "mape_pct": 2.3,
+      "bias_mw": -73.8,
+      "coverage_80_pct": 77.4
+    },
+    {
+      "segment": "weekends",
+      "model": "gbm_quantile",
+      "n_hours": 2520,
+      "n_days": 105,
+      "mae_mw": 226.2,
+      "mape_pct": 2.6,
+      "bias_mw": -62.5,
+      "coverage_80_pct": 62.9
+    },
+    {
+      "segment": "weekends",
+      "model": "linear",
+      "n_hours": 2520,
+      "n_days": 105,
+      "mae_mw": 213.3,
+      "mape_pct": 2.54,
+      "bias_mw": -85.0,
+      "coverage_80_pct": 79.4
+    },
+    {
+      "segment": "weekends",
+      "model": "naive_d2",
+      "n_hours": 2520,
+      "n_days": 105,
+      "mae_mw": 810.6,
+      "mape_pct": 9.63,
+      "bias_mw": 658.0
+    },
+    {
+      "segment": "weekends",
+      "model": "seasonal_naive_d7",
+      "n_hours": 2520,
+      "n_days": 105,
+      "mae_mw": 588.3,
+      "mape_pct": 6.45,
+      "bias_mw": -8.3
+    },
+    {
+      "segment": "Aug-Oct 2026 (SMHI latest-months temp)",
+      "model": "average",
+      "n_hours": 2200,
+      "n_days": 92,
+      "mae_mw": 184.6,
+      "mape_pct": 2.24,
+      "bias_mw": -125.1,
+      "coverage_80_pct": 81.1
+    },
+    {
+      "segment": "Aug-Oct 2026 (SMHI latest-months temp)",
+      "model": "gbm_quantile",
+      "n_hours": 2200,
+      "n_days": 92,
+      "mae_mw": 188.9,
+      "mape_pct": 2.3,
+      "bias_mw": -126.1,
+      "coverage_80_pct": 64.4
+    },
+    {
+      "segment": "Aug-Oct 2026 (SMHI latest-months temp)",
+      "model": "linear",
+      "n_hours": 2200,
+      "n_days": 92,
+      "mae_mw": 214.3,
+      "mape_pct": 2.63,
+      "bias_mw": -124.1,
+      "coverage_80_pct": 81.5
+    },
+    {
+      "segment": "Aug-Oct 2026 (SMHI latest-months temp)",
+      "model": "naive_d2",
+      "n_hours": 2200,
+      "n_days": 92,
+      "mae_mw": 587.8,
+      "mape_pct": 7.24,
+      "bias_mw": -50.5
+    },
+    {
+      "segment": "Aug-Oct 2026 (SMHI latest-months temp)",
+      "model": "seasonal_naive_d7",
+      "n_hours": 2200,
+      "n_days": 92,
+      "mae_mw": 323.1,
+      "mape_pct": 3.92,
+      "bias_mw": -201.0
+    }
+  ],
+  "weather_noise_simulation": {
+    "setup": "AR(1) hourly temperature error, marginal SD 1.5 degC, rho 0.9, 5 replicates; SIMULATED, applied only to prediction inputs from the backtest start",
+    "replicates": [
+      {
+        "variant": "temp_noise_1",
+        "average_mae_mw": 251.8,
+        "linear_mae_mw": 282.4,
+        "gbm_mae_mw": 254.9,
+        "average_coverage_80_pct": 68.1
+      },
+      {
+        "variant": "temp_noise_2",
+        "average_mae_mw": 232.9,
+        "linear_mae_mw": 263.5,
+        "gbm_mae_mw": 238.6,
+        "average_coverage_80_pct": 71.6
+      },
+      {
+        "variant": "temp_noise_3",
+        "average_mae_mw": 238.1,
+        "linear_mae_mw": 271.4,
+        "gbm_mae_mw": 238.9,
+        "average_coverage_80_pct": 70.4
+      },
+      {
+        "variant": "temp_noise_4",
+        "average_mae_mw": 247.1,
+        "linear_mae_mw": 282.5,
+        "gbm_mae_mw": 246.7,
+        "average_coverage_80_pct": 68.8
+      },
+      {
+        "variant": "temp_noise_5",
+        "average_mae_mw": 236.9,
+        "linear_mae_mw": 272.2,
+        "gbm_mae_mw": 238.6,
+        "average_coverage_80_pct": 70.8
+      }
+    ],
+    "average_mae_mean_mw": 241.4,
+    "average_mae_range_mw": [
+      232.9,
+      251.8
+    ],
+    "increase_vs_observed_mw": 43.2
+  },
+  "hero_week": {
+    "start": "2026-02-11",
+    "coldest_day": "2026-02-14",
+    "coldest_daily_mean_temp_c": -9.7,
+    "average_mae_mw": 290.7
+  }
+}
