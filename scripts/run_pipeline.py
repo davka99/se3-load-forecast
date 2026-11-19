@@ -20,6 +20,8 @@ Stages
   gbm        Calendar variants (D17) for the linear model, gradient-boosting quantile
              model and a linear+GBM average, all on the validation year
              (reports/gbm_validation.json).
+  evaluate   M8: the held-out backtest year, run once for all pre-registered models
+             (D19): reports/backtest_results.json, predictions and figures.
 
 The held-out backtest year is only evaluated in M8.
 Network access is only needed for `probe`, `fetch` and `reconcile`.
@@ -478,9 +480,133 @@ def gbm_stage() -> None:
     print(json.dumps(out, indent=2, default=str)[:8000])
 
 
+def evaluate_stage() -> None:
+    import pandas as pd
+
+    from se3load import backtest, evaluate, features, figures, metrics, models
+
+    data = _processed()
+    feat = features.build_features(data)
+    start, end = config.BACKTEST_START, config.BACKTEST_END
+    scale = backtest.mase_scale_from_history(data, start)
+    noisy = evaluate.noisy_feature_sets(data, start, n_reps=5, sd=1.5, rho=0.9,
+                                        seed=config.SEED)
+    out: dict = {"window": [start, end], "mase_scale_mw": round(scale, 1),
+                 "preregistration": "docs/decisions.md D19", "models": {}}
+    runs = {}
+    for m in backtest.baselines():
+        runs[m.name] = backtest.run(feat, m, start, end)
+    for m in (models.LinearModel(name="linear", calendar="v2b"),
+              models.GBMQuantileModel(name="gbm_quantile", calendar="v2b", seed=config.SEED)):
+        r = backtest.run(feat, m, start, end, extra_predict=noisy)
+        backtest.assert_no_leakage(r)
+        runs[m.name] = r
+        out.setdefault("fits", {})[m.name] = r.fits
+
+    def observed(name):
+        p = runs[name].predictions
+        return p[p["variant"] == "observed"].drop(columns="variant") if "variant" in p else p
+
+    preds = {n: observed(n) for n in runs}
+    lin, gbm = preds["linear"], preds["gbm_quantile"]
+    assert (lin["timestamp_utc"].to_numpy() == gbm["timestamp_utc"].to_numpy()).all()
+    avg = lin.copy()
+    avg["model"] = "average"
+    for c in ("forecast", "q10", "q90"):
+        avg[c] = (lin[c].to_numpy() + gbm[c].to_numpy()) / 2
+    preds["average"] = avg
+
+    for name, p in preds.items():
+        s_ = backtest.summarise(p, scale)
+        if p["q10"].notna().all() if "q10" in p else False:
+            s_["intervals"] = evaluate.coverage_with_day_ci(p)
+        out["models"][name] = s_
+
+    weeks = lambda p: pd.to_datetime(p["local_date"]).dt.strftime("%G-%V").to_numpy()  # noqa: E731
+    def boot(a, b):
+        r = metrics.block_bootstrap_mae_diff(a["actual"], a["forecast"], b["forecast"],
+                                             weeks(a), seed=config.SEED)
+        return {"mae_diff_mw": round(r["diff"], 1), "ci95_mw": [round(c, 1) for c in r["ci"]],
+                "pct_vs_b": round(100 * r["diff"] / metrics.mae(b["actual"], b["forecast"]), 1)}
+    def dm(a, b):
+        r = metrics.diebold_mariano(evaluate.daily_abs_error(a), evaluate.daily_abs_error(b))
+        return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items()}
+    sn = preds["seasonal_naive_d7"]
+    out["primary_average_vs_seasonal_naive"] = {**boot(avg, sn), "dm": dm(avg, sn)}
+    out["secondary_average_vs_linear"] = {**boot(avg, lin), "dm": dm(avg, lin)}
+    out["average_vs_gbm"] = {**boot(avg, gbm), "dm": dm(avg, gbm)}
+    out["linear_vs_gbm"] = {**boot(lin, gbm), "dm": dm(lin, gbm)}
+    mae_ci = {}
+    for name, p in preds.items():
+        r = metrics.block_bootstrap_mae_diff(p["actual"], p["forecast"], p["actual"], weeks(p),
+                                             seed=config.SEED)
+        mae_ci[name] = [round(c, 1) for c in r["ci"]]
+    out["mae_ci95_by_model"] = mae_ci
+
+    allp = evaluate.add_context(pd.concat(preds.values(), ignore_index=True), feat, data)
+    out["segments"] = evaluate.segment_table(allp)
+
+    # Simulated weather-forecast error (D19), linear + GBM refits unchanged.
+    sim = []
+    for v in noisy:
+        lv = runs["linear"].predictions.query("variant == @v")
+        gv = runs["gbm_quantile"].predictions.query("variant == @v")
+        av = lv.copy()
+        for c in ("forecast", "q10", "q90"):
+            av[c] = (lv[c].to_numpy() + gv[c].to_numpy()) / 2
+        sim.append({"variant": v, "average_mae_mw": round(metrics.mae(av["actual"], av["forecast"]), 1),
+                    "linear_mae_mw": round(metrics.mae(lv["actual"], lv["forecast"]), 1),
+                    "gbm_mae_mw": round(metrics.mae(gv["actual"], gv["forecast"]), 1),
+                    "average_coverage_80_pct": round(100 * metrics.interval_coverage(
+                        av["actual"], av["q10"], av["q90"]), 1)})
+    sim_df = pd.DataFrame(sim)
+    out["weather_noise_simulation"] = {
+        "setup": "AR(1) hourly temperature error, marginal SD 1.5 degC, rho 0.9, 5 replicates; "
+                 "SIMULATED, applied only to prediction inputs from the backtest start",
+        "replicates": sim,
+        "average_mae_mean_mw": round(float(sim_df["average_mae_mw"].mean()), 1),
+        "average_mae_range_mw": [float(sim_df["average_mae_mw"].min()),
+                                 float(sim_df["average_mae_mw"].max())],
+        "increase_vs_observed_mw": round(float(sim_df["average_mae_mw"].mean())
+                                         - out["models"]["average"]["mae_mw"], 1)}
+
+    # Figures
+    labels = {"average": "Average (linear + GBM)", "linear": "Linear regression",
+              "gbm_quantile": "Gradient boosting", "seasonal_naive_d7": "Same hour last week",
+              "naive_d2": "Same hour two days before"}
+    figures.mae_by_model(
+        [{"label": labels[n], "mae": out["models"][n]["mae_mw"], "ci": mae_ci[n]} for n in preds],
+        config.FIGURES / "backtest_mae_by_model.png",
+        f"Backtest {pd.Timestamp(start):%b %Y}–{pd.Timestamp(end):%b %Y}: the model average "
+        f"has {-out['primary_average_vs_seasonal_naive']['pct_vs_b']:.0f} % lower error "
+        "than 'same hour last week'")
+    temp_daily = feat.groupby("local_date")["temp"].mean()
+    temp_daily = temp_daily[(temp_daily.index >= start) & (temp_daily.index <= end)]
+    coldest = pd.Timestamp(temp_daily.idxmin())
+    wk_start = coldest - pd.Timedelta(days=3)
+    wk = avg[(pd.to_datetime(avg["local_date"]) >= wk_start)
+             & (pd.to_datetime(avg["local_date"]) < wk_start + pd.Timedelta(days=7))]
+    wk_mae = metrics.mae(wk["actual"], wk["forecast"])
+    out["hero_week"] = {"start": str(wk_start.date()), "coldest_day": str(coldest.date()),
+                        "coldest_daily_mean_temp_c": round(float(temp_daily.min()), 1),
+                        "average_mae_mw": round(wk_mae, 1)}
+    figures.hero_week(
+        wk, config.FIGURES / "hero_cold_week.png",
+        f"Day-ahead forecast vs actual in the coldest week of the backtest",
+        f"SE3, average model, week from {wk_start.date()} (coldest day {coldest.date()}, "
+        f"{temp_daily.min():.1f} °C daily mean); MAE this week {wk_mae:.0f} MW")
+
+    pd.concat(preds.values(), ignore_index=True).to_csv(
+        config.REPORTS / "predictions" / "backtest_all_models.csv.gz", index=False)
+    _write_json(config.REPORTS / "backtest_results.json", out)
+    print(json.dumps({k: v for k, v in out.items() if k not in ("fits", "segments")},
+                     indent=2, default=str)[:9000])
+
+
 STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
           "explore": explore_stage, "select": select_stage, "baselines": baselines_stage,
-          "regression": regression_stage, "gbm": gbm_stage}
+          "regression": regression_stage, "gbm": gbm_stage,
+          "evaluate": evaluate_stage}
 
 
 def main(argv: list[str]) -> int:

@@ -1,4 +1,4 @@
 # One pipeline stage per line. Pushing a change to this file runs the
 # pipeline workflow in the portfolio-agent workspace (see PLAN.md).
-# M7: calendar variants, gradient boosting quantile model, average.
-gbm
+# M8: open the held-out backtest year once, as pre-registered in D19.
+evaluate

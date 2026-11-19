@@ -74,8 +74,16 @@ class BacktestResult:
 
 
 def run(feat: pd.DataFrame, model: Model, start: str, end: str, refit_days: int = 28,
-        train_start: str = "2019-01-08", half_life_days: float | None = 365) -> BacktestResult:
-    """Rolling-origin backtest over target local dates start..end (inclusive)."""
+        train_start: str = "2019-01-08", half_life_days: float | None = 365,
+        extra_predict: dict[str, pd.DataFrame] | None = None) -> BacktestResult:
+    """Rolling-origin backtest over target local dates start..end (inclusive).
+
+    `extra_predict` maps a variant name to an alternative feature frame (same rows and
+    order as `feat`) used only for *prediction*: fits always use `feat`. This is how
+    simulated weather-forecast error is applied to the inputs for day D without
+    touching the observed history the model is trained on. Variant rows get a
+    `variant` column; the main predictions have variant "observed".
+    """
     dates = pd.to_datetime(feat["local_date"])
     targets = pd.date_range(start, end, freq="D")
     preds, fits = [], []
@@ -96,14 +104,20 @@ def run(feat: pd.DataFrame, model: Model, start: str, end: str, refit_days: int 
         rows = feat[dates == day]
         if rows.empty:
             continue
-        p = model.predict(rows)
-        out = rows[["timestamp_utc", "local_date", "local_hour", "load_mw"]].copy()
-        out = out.rename(columns={"load_mw": "actual"})
-        out["model"] = model.name
-        out["issued_local"] = f"{(day - pd.Timedelta(days=1)).date()} 12:00"
-        for c in p.columns:
-            out[c] = p[c].to_numpy()
-        preds.append(out)
+        variants = {"observed": rows}
+        for vname, vfeat in (extra_predict or {}).items():
+            variants[vname] = vfeat.loc[rows.index]
+        for vname, vrows in variants.items():
+            p = model.predict(vrows)
+            out = rows[["timestamp_utc", "local_date", "local_hour", "load_mw"]].copy()
+            out = out.rename(columns={"load_mw": "actual"})
+            out["model"] = model.name
+            out["issued_local"] = f"{(day - pd.Timedelta(days=1)).date()} 12:00"
+            if extra_predict:
+                out["variant"] = vname
+            for c in p.columns:
+                out[c] = p[c].to_numpy()
+            preds.append(out)
     return BacktestResult(pd.concat(preds, ignore_index=True), fits)
 
 

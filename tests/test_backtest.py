@@ -91,3 +91,16 @@ def test_mase_scale_from_history_uses_only_earlier_dates():
     s1 = backtest.mase_scale_from_history(data, "2024-03-01")
     data.loc[pd.to_datetime(data["local_date"]) >= "2024-03-01", "load_mw"] = 1e9
     assert backtest.mase_scale_from_history(data, "2024-03-01") == pytest.approx(s1)
+
+
+def test_extra_predict_uses_alternative_features_but_same_fits():
+    feat = make_feat()
+    alt = feat.copy()
+    alt["load_d7_same_hour"] = alt["load_d7_same_hour"] + 1000
+    res = backtest.run(feat, backtest.LagBaseline("load_d7_same_hour", "snaive"),
+                       "2024-02-01", "2024-02-03", extra_predict={"shifted": alt})
+    p = res.predictions
+    assert set(p["variant"]) == {"observed", "shifted"}
+    obs = p[p["variant"] == "observed"]["forecast"].to_numpy()
+    sh = p[p["variant"] == "shifted"]["forecast"].to_numpy()
+    assert np.allclose(sh - obs, 1000)

@@ -128,3 +128,54 @@ def decomposition(dec: pd.DataFrame, strengths: dict, path: Path) -> None:
              color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
+
+
+def hero_week(pred: pd.DataFrame, path: Path, title: str, subtitle: str) -> None:
+    """Forecast vs actual with the 80 % band for one week (one model)."""
+    p = pred.sort_values("timestamp_utc")
+    x = pd.to_datetime(p["timestamp_utc"]).dt.tz_convert("Europe/Stockholm")
+    fig, ax = plt.subplots(figsize=(10, 4.6), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    ax.fill_between(x, p["q10"] / 1000, p["q90"] / 1000, color=BLUE, alpha=0.18,
+                    linewidth=0, label="80 % forecast interval")
+    ax.plot(x, p["forecast"] / 1000, color=BLUE, linewidth=2, label="Forecast (issued 12:00 day before)")
+    ax.plot(x, p["actual"] / 1000, color=TEXT, linewidth=1.4, linestyle=(0, (3, 2)),
+            label="Actual")
+    _style(ax)
+    lo = min(p["q10"].min(), p["actual"].min()) / 1000
+    hi = max(p["q90"].max(), p["actual"].max()) / 1000
+    ax.set_ylim(lo - 0.05 * (hi - lo), hi + 0.22 * (hi - lo))  # headroom for the legend
+    ax.set_ylabel("GW", color=TEXT_2, fontsize=9)
+    ax.set_title(title, loc="left", color=TEXT, fontsize=12, fontweight="bold", pad=18)
+    ax.text(0, 1.01, subtitle, transform=ax.transAxes, color=TEXT_2, fontsize=9, va="bottom")
+    leg = ax.legend(frameon=False, fontsize=8.5, loc="upper left", ncol=3)
+    for t in leg.get_texts():
+        t.set_color(TEXT)
+    import matplotlib.dates as mdates
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%a %d %b", tz=x.dt.tz))
+    fig.text(0.01, -0.02, SOURCE, color=TEXT_2, fontsize=7.5)
+    fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def mae_by_model(rows: list[dict], path: Path, title: str) -> None:
+    """Horizontal bars: backtest MAE per model with 95 % block-bootstrap CI."""
+    rows = sorted(rows, key=lambda r: r["mae"], reverse=True)
+    fig, ax = plt.subplots(figsize=(8, 3.6), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    y = range(len(rows))
+    ax.barh(list(y), [r["mae"] for r in rows], color=BLUE, height=0.55)
+    for i, r in enumerate(rows):
+        ax.plot(r["ci"], [i, i], color=TEXT, linewidth=1.2)
+        ax.text(r["ci"][1] + 12, i, f"{r['mae']:.0f} MW", va="center", color=TEXT, fontsize=9)
+    ax.set_yticks(list(y), [r["label"] for r in rows])
+    ax.set_xlim(0, max(r["ci"][1] for r in rows) * 1.18)
+    _style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.set_xlabel("Mean absolute error per hour (MW); line = 95 % weekly-block bootstrap CI",
+                  color=TEXT_2, fontsize=8.5)
+    ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold")
+    fig.text(0.01, -0.09, SOURCE, color=TEXT_2, fontsize=7.5)
+    fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)

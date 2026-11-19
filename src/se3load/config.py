@@ -17,6 +17,7 @@ SEED = 20261119
 START = "2019-01-01"
 END = "2026-11-01"
 BACKTEST_START = "2025-11-01"
+BACKTEST_END = "2026-10-31"  # last local date (inclusive)
 
 BIDDING_ZONE = "SE3"
 

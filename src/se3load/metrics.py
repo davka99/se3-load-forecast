@@ -99,3 +99,38 @@ def block_bootstrap_mae_diff(y_true, pred_a, pred_b, blocks, n_boot: int = 2000,
     return {"diff": float(diff.mean()),
             "ci": [float(np.quantile(boot, alpha)), float(np.quantile(boot, 1 - alpha))],
             "n_blocks": int(len(uniq))}
+
+
+def diebold_mariano(loss_a, loss_b, max_lag: int = 7) -> dict:
+    """Diebold-Mariano test of equal predictive accuracy on a loss series.
+
+    d_t = loss_a - loss_b (e.g. daily mean absolute errors). The variance of the mean
+    uses a Newey-West (Bartlett) estimator with `max_lag` lags, because daily losses
+    are autocorrelated; the statistic is compared with a t distribution (n-1 df).
+    Negative statistic = a has lower loss.
+    """
+    from scipy import stats
+
+    d = np.asarray(loss_a, dtype=float) - np.asarray(loss_b, dtype=float)
+    n = len(d)
+    if n < 10:
+        raise ValueError("need at least 10 observations")
+    dc = d - d.mean()
+    lrv = float(np.dot(dc, dc) / n)
+    for k in range(1, max_lag + 1):
+        gamma = float(np.dot(dc[k:], dc[:-k]) / n)
+        lrv += 2 * (1 - k / (max_lag + 1)) * gamma
+    stat = float(d.mean() / np.sqrt(lrv / n))
+    p = float(2 * stats.t.sf(abs(stat), df=n - 1))
+    return {"mean_diff": float(d.mean()), "statistic": stat, "p_value": p, "n": n,
+            "nw_lags": max_lag}
+
+
+def ar1_noise(n: int, sd: float, rho: float, rng: np.random.Generator) -> np.ndarray:
+    """Stationary AR(1) series with marginal standard deviation `sd`."""
+    e = rng.normal(0, sd * np.sqrt(1 - rho**2), n)
+    x = np.empty(n)
+    x[0] = rng.normal(0, sd)
+    for i in range(1, n):
+        x[i] = rho * x[i - 1] + e[i]
+    return x
