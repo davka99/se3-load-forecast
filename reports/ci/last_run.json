@@ -1,2 +1,2 @@
-{"run_id": "44548231414", "sha": "730d00a98cb12569940080630890abfea81af4e8", "stages": "reconcile quality ",
- "tests": "success", "pipeline": "success", "finished_utc": "2026-11-19T14:55:28Z"}
+{"run_id": "44550303492", "sha": "182d51ac05e5cc272f2e3a9e2a56d3f11b8792e7", "stages": "explore select ",
+ "tests": "failure", "pipeline": "success", "finished_utc": "2026-11-19T15:03:17Z"}

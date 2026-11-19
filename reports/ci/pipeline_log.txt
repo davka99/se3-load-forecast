@@ -1,129 +1,166 @@
-== stage: reconcile
-SE1: 130,134 rows
-SE2: 130,134 rows
-SE3: 130,134 rows
-SE4: 130,134 rows
-zone     SE1     SE2     SE3     SE4
-year                                
-2019  10.310  15.891  82.978  22.957
-2020  10.101  15.704  80.380  22.715
-2021  10.697  15.436  85.865  23.931
-2022  11.139  15.401  80.470  21.867
-2023  11.164  15.094  79.574  21.185
-2024  11.121  15.028  80.876  21.483
-2025  11.002  15.206  79.317  21.203
-2026   0.002   0.002   0.010   0.003
-== stage: quality
+== stage: explore
 {
-  "load": {
-    "raw_rows": 159318,
-    "raw_duplicates": 0,
-    "raw_sign": {
-      "negative": 159318,
-      "zero": 0,
-      "positive": 0,
-      "missing": 0
-    },
-    "resolution_switch_utc": "2023-05-21 22:00:00+00:00",
-    "hours": 68664,
-    "missing_hours": 0,
-    "incomplete_hours": 0,
-    "min_mw": 4801.1,
-    "max_mw": 16289.5,
-    "max_at_utc": "2021-02-10 07:00:00+00:00",
-    "mean_mw": 9258.6
+  "daily_days": 2861,
+  "strengths": {
+    "trend": 0.085,
+    "seasonal_7": 0.299,
+    "seasonal_365": 0.887
   },
-  "load_flags": {
-    "outlier_hours": 19,
-    "outlier_hours_on_holiday_or_eve": 15,
-    "outlier_days": [
-      "2019-06-21",
-      "2020-06-19",
-      "2021-06-25",
-      "2022-05-26",
-      "2022-06-06",
-      "2022-06-24",
-      "2023-06-23",
-      "2024-06-06",
-      "2025-08-23"
-    ],
-    "stuck_hours": 0
+  "weekly_component_by_dow_mw": {
+    "0": 249.4,
+    "1": 286.8,
+    "2": 305.3,
+    "3": 281.6,
+    "4": 99.7,
+    "5": -607.8,
+    "6": -616.3
   },
-  "reconciliation": [
+  "yearly_component_range_mw": [
+    -3004.0,
+    4770.0
+  ],
+  "trend_quarterly_mw": {
+    "2019-01-01": 9477.0,
+    "2019-04-01": 9421.0,
+    "2019-07-01": 9365.0,
+    "2019-10-01": 9314.0,
+    "2020-01-01": 9267.0,
+    "2020-04-01": 9236.0,
+    "2020-07-01": 9244.0,
+    "2020-10-01": 9311.0,
+    "2021-01-01": 9391.0,
+    "2021-04-01": 9458.0,
+    "2021-07-01": 9472.0,
+    "2021-10-01": 9419.0,
+    "2022-01-01": 9342.0,
+    "2022-04-01": 9234.0,
+    "2022-07-01": 9114.0,
+    "2022-10-01": 9021.0,
+    "2023-01-01": 8959.0,
+    "2023-04-01": 8947.0,
+    "2023-07-01": 8996.0,
+    "2023-10-01": 9047.0,
+    "2024-01-01": 9088.0,
+    "2024-04-01": 9115.0,
+    "2024-07-01": 9122.0,
+    "2024-10-01": 9128.0,
+    "2025-01-01": 9142.0,
+    "2025-04-01": 9153.0,
+    "2025-07-01": 9179.0,
+    "2025-10-01": 9220.0,
+    "2026-01-01": 9250.0,
+    "2026-04-01": 9281.0,
+    "2026-07-01": 9313.0,
+    "2026-10-01": 9334.0
+  },
+  "resid_sd_mw": 617.6
+}
+== stage: select
+{
+  "rule": "D11: choose how to handle the post-2022 level shift, on the validation year only.\n\nSelection rule (fixed in docs/decisions.md D11 before any model results):\nthe option with the lowest validation MAE for the linear model *with* load lags,\nvalidation = 2024-11-01 .. 2025-10-31 (local dates), training ends 2024-10-31.\nThe backtest year (from 2025-11-01) is never touched here.",
+  "train_end": "2024-10-31",
+  "validation": [
+    "2024-11-01",
+    "2025-10-31"
+  ],
+  "half_life_days": 365,
+  "results": [
     {
-      "year": 2019,
-      "SE1": 10.31,
-      "SE2": 15.89,
-      "SE3": 82.98,
-      "SE4": 22.96,
-      "esett_total_twh": 132.14,
-      "se3_share_pct": 62.8
+      "option": "all_years_no_adjustment",
+      "use_lags": true,
+      "n_val_hours": 8760,
+      "mae_mw": 244.3,
+      "mape_pct": 2.73,
+      "bias_mw": 49.1
     },
     {
-      "year": 2020,
-      "SE1": 10.1,
-      "SE2": 15.7,
-      "SE3": 80.38,
-      "SE4": 22.71,
-      "esett_total_twh": 128.9,
-      "se3_share_pct": 62.4,
-      "published_incl_losses_twh": 138.2,
-      "published_excl_losses_twh": 127.3,
-      "esett_vs_excl_losses_pct": 1.3,
-      "esett_vs_incl_losses_pct": -6.7
+      "option": "all_years_regime_terms",
+      "use_lags": true,
+      "n_val_hours": 8760,
+      "mae_mw": 240.3,
+      "mape_pct": 2.68,
+      "bias_mw": -68.7
     },
     {
-      "year": 2021,
-      "SE1": 10.7,
-      "SE2": 15.44,
-      "SE3": 85.86,
-      "SE4": 23.93,
-      "esett_total_twh": 135.93,
-      "se3_share_pct": 63.2
+      "option": "all_years_recency_weighted",
+      "use_lags": true,
+      "n_val_hours": 8760,
+      "mae_mw": 230.4,
+      "mape_pct": 2.55,
+      "bias_mw": -15.4
     },
     {
-      "year": 2022,
-      "SE1": 11.14,
-      "SE2": 15.4,
-      "SE3": 80.47,
-      "SE4": 21.87,
-      "esett_total_twh": 128.88,
-      "se3_share_pct": 62.4
+      "option": "post_2022_only",
+      "use_lags": true,
+      "n_val_hours": 8760,
+      "mae_mw": 233.3,
+      "mape_pct": 2.58,
+      "bias_mw": -74.9
     },
     {
-      "year": 2023,
-      "SE1": 11.16,
-      "SE2": 15.09,
-      "SE3": 79.57,
-      "SE4": 21.18,
-      "esett_total_twh": 127.02,
-      "se3_share_pct": 62.6,
-      "published_incl_losses_twh": 134.3,
-      "published_excl_losses_twh": 124.7,
-      "esett_vs_excl_losses_pct": 1.9,
-      "esett_vs_incl_losses_pct": -5.4
+      "option": "all_years_no_adjustment",
+      "use_lags": false,
+      "n_val_hours": 8760,
+      "mae_mw": 277.1,
+      "mape_pct": 3.11,
+      "bias_mw": 133.2
     },
     {
-      "year": 2024,
-      "SE1": 11.12,
-      "SE2": 15.03,
-      "SE3": 80.88,
-      "SE4": 21.48,
-      "esett_total_twh": 128.51,
-      "se3_share_pct": 62.9,
-      "published_incl_losses_twh": 135.0,
-      "published_excl_losses_twh": 125.6,
-      "esett_vs_excl_losses_pct": 2.3,
-      "esett_vs_incl_losses_pct": -4.8
+      "option": "all_years_regime_terms",
+      "use_lags": false,
+      "n_val_hours": 8760,
+      "mae_mw": 268.3,
+      "mape_pct": 3.03,
+      "bias_mw": -103.2
     },
     {
-      "year": 2025,
-      "SE1": 11.0,
-      "SE2": 15.21,
-      "SE3": 79.32,
-      "SE4": 21.2,
-      "esett_total_twh": 126.73,
-      "se3_share_pct": 62.6
+      "option": "all_years_recency_weighted",
+      "use_lags": false,
+      "n_val_hours": 8760,
+      "mae_mw": 234.3,
+      "mape_pct": 2.63,
+      "bias_mw": 0.9
+    },
+    {
+      "option": "post_2022_only",
+      "use_lags": false,
+      "n_val_hours": 8760,
+      "mae_mw": 253.5,
+      "mape_pct": 2.82,
+      "bias_mw": -101.5
+    }
+  ],
+  "chosen": "all_years_recency_weighted",
+  "paired_bootstrap_vs_chosen": [
+    {
+      "best": "all_years_recency_weighted",
+      "vs": "all_years_no_adjustment",
+      "mae_diff_mw": -14.0,
+      "ci95_mw": [
+        -22.0,
+        -5.7
+      ],
+      "n_week_blocks": 53
+    },
+    {
+      "best": "all_years_recency_weighted",
+      "vs": "all_years_regime_terms",
+      "mae_diff_mw": -9.9,
+      "ci95_mw": [
+        -17.2,
+        -2.7
+      ],
+      "n_week_blocks": 53
+    },
+    {
+      "best": "all_years_recency_weighted",
+      "vs": "post_2022_only",
+      "mae_diff_mw": -2.9,
+      "ci95_mw": [
+        -10.3,
+        4.5
+      ],
+      "n_week_blocks": 53
     }
   ]
 }
