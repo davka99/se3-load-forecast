@@ -7,7 +7,14 @@ All offline stages were re-run from the committed raw files in one GitHub Action
 requirements, fixed seed). The regenerated `reports/*.json` and the processed dataset
 were compared with the versions produced stage by stage during development.
 
-RERUN_RESULT
+**Result (Actions run 44567100509, 2026-11-19):** all 79 tests passed. Every results
+file (`backtest_results.json`, `regression_validation.json`, `gbm_validation.json`,
+`baselines_validation.json`, `d11_training_window.json`, `exploration_summary.json`,
+`data_quality_summary.json`) was **byte-for-byte identical** apart from the recorded
+GBM runtime. The processed dataset and all backtest predictions were identical after
+decompression. The validation-year GBM predictions (`validation_m7.csv.gz`) differed by
+at most 1e-10 MW (floating-point summation order); no reported number changed.
+The full offline pipeline took about 17 minutes on a GitHub Actions runner.
 
 `scripts/check_readme.py` (also run as a test) checks that the 31 key numbers quoted in
 the README match `reports/backtest_results.json` and `reports/regression_validation.json`.

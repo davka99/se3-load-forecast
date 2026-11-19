@@ -109,8 +109,9 @@ national consumption.
 ## How to run
 
 Requires Python 3.12. Raw data is committed, so everything except `fetch`/`reconcile`
-runs offline. The full pipeline takes roughly 10–15 minutes, mostly the gradient-boosting
-backtests.
+runs offline. The full offline pipeline takes about 17 minutes on a GitHub Actions runner,
+mostly the gradient-boosting backtests. A full rerun reproduced every result
+file exactly ([docs/qa.md](docs/qa.md)).
 
 **macOS / Linux**
 ```bash

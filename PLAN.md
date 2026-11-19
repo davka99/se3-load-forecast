@@ -64,10 +64,10 @@ copy in `.github/workflows/pipeline.yml` uses `workflow_dispatch`).
 - [x] M7. Gradient boosting quantile model and backtest.
 - [x] M8. Evaluation: metrics with uncertainty, DM test, segment errors,
       weather-forecast-noise sensitivity.
-- [ ] M9. Final figures, README with real results, QA rerun from scratch,
+- [x] M9. Final figures, README with real results, QA rerun from scratch,
       skeptic's three objections.
 
-Max 15 build runs.
+Max 15 build runs. Used: 9.
 
 ## Definition of Done
 
@@ -78,6 +78,6 @@ Max 15 build runs.
 - [x] Key metrics reported with uncertainty (CI or interval) and MASE vs baseline
 - [x] Segment check (winter peak, holidays, weekday/weekend) done
 - [x] `docs/decisions.md` covers every choice that affects results
-- [ ] Tests pass locally (offline) and in GitHub Actions
+- [x] Tests pass locally (offline) and in GitHub Actions
 - [x] README follows the portfolio standard with real numbers and limitations
-- [ ] Every number in README is reproducible by `run_pipeline.py`
+- [x] Every number in README is reproducible by `run_pipeline.py`
