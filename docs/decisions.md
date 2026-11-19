@@ -25,15 +25,26 @@ results are logged in a separate section at the bottom.
   → `ESETT_VALUE_KIND = "energy"`: hourly MWh = sum of the periods; sign flipped
   explicitly in cleaning with wrong-sign values kept visible. Raw files keep the
   published sign. Unit is re-checked against annual totals in M3.
+- **Full fetch (2026-11-19):** 159,318 rows, 2019-01-01 to 2026-10-31, no duplicate
+  timestamps, every value negative, none missing. Resolution is **hourly until 2023 and
+  15-minute from 2023** (the Nordic 15-minute imbalance settlement period). Summing to
+  hours works for both because values are energy per period. Annual sums
+  79–86 TWh (2019–2025), plausible for SE3; formal reconciliation in M3.
 
-### D3. Population-weighted temperature from six SMHI stations
+### D3. Population-weighted temperature from five SMHI stations
 - **Stations pinned by id**, not name: the probe showed `Örebro A` does not exist
   (replaced by `Örebro Flygplats`, 95130) and two stations are called `Västerås`
   (96350 active, 28 closed). Each run verifies id, name and active flag and stops on
   any mismatch.
+- **Västerås dropped (2026-11-19, before any modelling):** the full fetch showed that
+  station 96350 reports only ~3 observations a day (5,671 values for 2019–2026 vs
+  ~68,000 for the other stations). Keeping it would make the weighted temperature
+  switch composition every few hours. Its weight (0.28 of 5.66, about 5 %) is
+  dropped; Västmanland lies between Uppsala and Örebro, which are both included.
+  Five stations remain.
 - **Why:** load responds to where people live. Weights are approximate county
   populations (SCB 2024, rounded): Stockholm 2.45, Västra Götaland 1.75,
-  Östergötland 0.47, Uppsala 0.40, Örebro 0.31, Västmanland 0.28 (millions).
+  Östergötland 0.47, Uppsala 0.40, Örebro 0.31 (millions).
 - **Alternatives:** Stockholm only; equal weights; gridded reanalysis (ERA5, needs account).
 - **Impact:** small; sensitivity check against Stockholm-only temperature planned in M6.
 - **Missing stations in an hour:** weights renormalised over reporting stations and the

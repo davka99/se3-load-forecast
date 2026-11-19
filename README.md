@@ -26,7 +26,7 @@ _To be written after evaluation._
 
 ## Approach
 
-1. Fetch settled hourly consumption (eSett) and hourly temperature at six SMHI stations.
+1. Fetch settled hourly consumption (eSett) and hourly temperature at five SMHI stations.
 2. Data-quality checks and reconciliation of annual totals against published statistics.
 3. Seasonal-naive baselines.
 4. Linear regression with heating degrees and calendar effects (also gives MW per °C).

@@ -70,5 +70,5 @@ def test_fetch_stage_offline(tmp_path, monkeypatch):
     assert manifest["esett"]["rows"] == 2
     assert manifest["esett"]["sign"]["negative"] == 2
     # 4 archive rows per station; the latest-months row duplicates 03:00 and archive wins.
-    assert manifest["smhi"]["rows"] == 6 * 4
+    assert manifest["smhi"]["rows"] == len(cfg.TEMPERATURE_STATIONS) * 4
     assert (tmp_path / "smhi_air_temperature.csv.gz").exists()

@@ -1,4 +1,4 @@
 # One pipeline stage per line. Pushing a change to this file runs the
 # pipeline workflow in the portfolio-agent workspace (see PLAN.md).
-probe
+# Re-fetch after dropping Västerås from the station list.
 fetch

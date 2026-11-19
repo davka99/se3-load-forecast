@@ -22,7 +22,7 @@ of a naive rule, and how wide the hourly uncertainty band should be when bidding
 | Source | What | Access |
 |---|---|---|
 | [eSett Open Data](https://api.opendata.esett.com) `/EXP15/Consumption` | Settled consumption for MBA SE3 (EIC `10Y1001A1001A46L`), hourly until Sept 2025 and 15-min after the MTU switch | Open REST API, no key; fetched in 31-day chunks |
-| [SMHI Open Data Meteorological Observations](https://opendata.smhi.se/apidocs/metobs/) parameter 1 | Hourly air temperature at 6 SE3 stations, population-weighted | Open REST API, no key; `corrected-archive` CSV + `latest-months` JSON |
+| [SMHI Open Data Meteorological Observations](https://opendata.smhi.se/apidocs/metobs/) parameter 1 | Hourly air temperature at 5 SE3 stations, population-weighted | Open REST API, no key; `corrected-archive` CSV + `latest-months` JSON |
 | Swedish holidays | Public + de facto holidays, bridge days | Computed in `src/se3load/calendar_se.py` |
 
 Study window: 2019-01-01 to 2026-10-31 (UTC). Backtest (held out): 2025-11-01 to 2026-10-31.
@@ -52,7 +52,7 @@ copy in `.github/workflows/pipeline.yml` uses `workflow_dispatch`).
 
 - [x] M1. Scaffold: plan, brief, README skeleton, decisions log, pinned requirements,
       source parsers with offline tests, CI and pipeline workflows; source probe.
-- [ ] M2. Verify probe output (schema, unit, sign, station names), fix config, then
+- [x] M2. Verify probe output (schema, unit, sign, station names), fix config, then
       fetch the full window via GitHub Actions.
 - [ ] M3. Data quality report (`docs/data_quality.md`) and clean hourly dataset
       `data/processed/se3_hourly.csv.gz` with documented, tested rules.

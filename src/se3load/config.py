@@ -25,14 +25,15 @@ BIDDING_ZONE = "SE3"
 # id -> (expected SMHI name, weight). Weights are approximate county populations
 # (millions, SCB 2024, rounded); only relative size matters. Sensitivity to the
 # weights is checked against a Stockholm-only temperature. Verified by the probe
-# run of 2026-11-19 (all six active and covering 2019 onwards).
+# and fetch runs of 2026-11-19. Västerås (96350, weight 0.28) was dropped: it only
+# reports about three observations a day (5,671 values in 2019-2026 vs ~68,000 for
+# the others), which would make the weighting change from hour to hour.
 TEMPERATURE_STATIONS: dict[int, tuple[str, float]] = {
     98230: ("Stockholm-Observatoriekullen A", 2.45),  # Stockholms län
     71420: ("Göteborg A", 1.75),                      # Västra Götalands län
     85240: ("Linköping-Malmslätt", 0.47),             # Östergötlands län
     97510: ("Uppsala Aut", 0.40),                     # Uppsala län
     95130: ("Örebro Flygplats", 0.31),                # Örebro län ("Örebro A" does not exist)
-    96350: ("Västerås", 0.28),                        # Västmanlands län (active id; 28 is a closed namesake)
 }
 
 
