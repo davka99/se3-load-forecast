@@ -60,7 +60,7 @@ copy in `.github/workflows/pipeline.yml` uses `workflow_dispatch`).
       module (calendar, heating degrees, lags available at bid time) with tests;
       decide D11 (post-2022 level shift) on the validation year 2024-11 → 2025-10.
 - [x] M5. Rolling-origin backtest framework + seasonal-naive baselines with tests.
-- [ ] M6. Regression model + temperature sensitivity with HAC confidence interval.
+- [x] M6. Regression model + temperature sensitivity with HAC confidence interval.
 - [ ] M7. Gradient boosting quantile model and backtest.
 - [ ] M8. Evaluation: metrics with uncertainty, DM test, segment errors,
       weather-forecast-noise sensitivity.

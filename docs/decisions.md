@@ -168,6 +168,52 @@ results are logged in a separate section at the bottom.
 - **Windows:** M5–M7 develop on the validation year (2024-11-01 → 2025-10-31).
   The backtest year (2025-11-01 → 2026-10-31) is run **once**, in M8, for all models.
 
+### D15. Linear forecast model and its intervals (M6)
+- Ridge (α = 1) on the D13 design with D-2/D-7 lags, recency weights (D11), refits
+  every 28 days (D14). Ridge rather than plain OLS because the hour×daytype dummies
+  and hour-specific heating slopes are partly collinear; α = 1 is negligible next to
+  the sum of squares and was not tuned.
+- **80 % intervals by split conformal:** at each refit the model is fitted without its
+  last 90 days, and the 10th/90th percentiles of its errors on those 90 unseen days
+  are added to the full-data forecast. This was chosen over in-sample residual
+  quantiles, which are too narrow by construction. Known weakness, set before
+  results: one pooled residual distribution for all hours and seasons.
+
+### D16. Temperature sensitivity (business secondary question)
+- Daily OLS: daily mean load ~ HDD(15 °C) + CDD(20 °C) + day type + month + summer-break
+  + Christmas flags, **Newey-West (HAC) SEs with 14 lags**. Month dummies mean the slope
+  comes from weather variation *within* a month, so daylight and seasonal habits are
+  not counted as temperature effect.
+- No load lags: they would absorb the temperature effect.
+- Main window 2023-01-01 → 2025-10-31: the current regime (D11), and the backtest year
+  stays closed. Pre-crisis 2019–2021 is estimated as a comparison.
+- Hourly variant: one HDD slope per local hour, HAC with 168 lags.
+
 ## After looking at results
 
-_None yet. (M3 findings above are data facts, not model results.)_
+### R1. M6 results on the validation year (2024-11-01 → 2025-10-31)
+Source: `reports/regression_validation.json`, Actions run 44552103105.
+- Linear model: MAE 228.7 MW, RMSE 289.0, MAPE 2.55 %, MASE 0.365, bias −13.5 MW,
+  80 % interval coverage 81.5 % (winter 77.6 %, summer 84.3 %; the pooled-residual
+  weakness of D15 shows up as expected).
+- vs seasonal naive: −415.6 MW MAE (95 % weekly-block CI −520.6 to −318.2), a 64.5 %
+  reduction.
+- **D3 check:** with Stockholm-only temperature the same model gives MAE 256.7 MW, so the
+  population-weighted temperature is better by 28 MW. D3 is kept. The check was run as
+  pre-registered, not chosen after the fact.
+- **Temperature sensitivity (2023–Oct 2025):** 202.4 MW per °C of daily mean below
+  15 °C, 95 % CI 188.4–216.4 (≈ 4.9 GWh per day per °C). The HAC SE (7.1) is 2.3× the
+  naive OLS SE (3.1); ignoring autocorrelation would have overstated the precision.
+  Pre-crisis 2019–2021: 227.0 (214.3–239.7). The CIs do not overlap, so the heating
+  response is ~11 % weaker since 2023, which fits M3's finding that the post-2022
+  gap is largest in cold weather. Stockholm-only temperature: 189.9 (173.3–206.6),
+  slightly attenuated, as expected when the temperature measure is noisier.
+- Hourly slopes peak at 17:00 (231 MW/°C, CI 220–241) and 07:00 (219, 208–229), and
+  are lowest at 23:00 (172, 161–184). Cold adds most at the morning and evening peaks.
+- **Worst validation days** are the Christmas/New Year period (31 Dec −822 MW bias,
+  6 Jan −737, 3–4 Jan −588/−651; negative = under-forecast) and 22 Dec (+593). The
+  flat `is_christmas_period` flag plus the holiday day type push these days too low.
+  Also 2025-05-07 (+569, unexplained) and Midsommardagen 2025-06-21 (+542).
+  → **Diagnostic-driven candidate for M7** (allowed, since this is the validation year):
+  split the Christmas period into holiday days vs working days in between. Must be
+  logged as a post-result change and re-scored on validation only.
