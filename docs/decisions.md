@@ -108,7 +108,9 @@ results are logged in a separate section at the bottom.
   heating slopes, flags, D-2/D-7 load lags), trained to 2024-10-31, one fit, scored on
   all 8,760 validation hours. Half-life for (c) fixed at 365 days *before* the run, not
   tuned. Primary = model with lags (that is what will be used); without lags reported
-  for context. Paired weekly-block bootstrap (53 weeks, 2,000 draws) for differences.
+  for context. Paired weekly-block bootstrap (53 weeks, 2,000 draws, seed = config.SEED)
+  for differences. Numbers below are from GitHub Actions run 44550627678
+  (`reports/d11_training_window.json`).
 
   | Option | MAE (MW) with lags | Bias | MAE without lags | Bias |
   |---|---|---|---|---|
@@ -117,7 +119,7 @@ results are logged in a separate section at the bottom.
   | (c) all years, recency-weighted | **230.4** | −15 | **234.3** | +1 |
   | (a) 2023 onwards only | 233.3 | −75 | 253.5 | −102 |
 
-  (c) vs (d): −14.0 MW (95 % CI −21.8 to −5.4); vs (b): −9.9 (−17.2 to −2.7);
+  (c) vs (d): −14.0 MW (95 % CI −22.0 to −5.7); vs (b): −9.9 (−17.2 to −2.7);
   vs (a): −2.9 (−10.3 to +4.5, not distinguishable).
 - **Decision: (c) recency weighting, half-life 365 days**, for all models. It wins on the
   rule. It is clearly better than ignoring the shift, which over-forecasts by +133 MW
