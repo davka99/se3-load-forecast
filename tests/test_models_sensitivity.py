@@ -74,3 +74,45 @@ def test_with_alternative_temperature_keeps_rows():
     assert len(out) == len(data)
     assert (out["temperature_c"] == -3.0).all()
     assert out["load_mw"].equals(data["load_mw"])
+
+
+def test_gbm_quantile_model_orders_quantiles_and_beats_naive():
+    feat = features.build_features(synthetic(end="2024-01-01"))
+    m = models.GBMQuantileModel(max_iter=100)
+    res = backtest.run(feat, m, "2023-10-01", "2023-12-15", refit_days=60,
+                       half_life_days=None)
+    backtest.assert_no_leakage(res)
+    p = res.predictions
+    assert ((p["q10"] <= p["forecast"]) & (p["forecast"] <= p["q90"])).all()
+    snv = backtest.run(feat, backtest.LagBaseline("load_d7_same_hour", "snaive"),
+                       "2023-10-01", "2023-12-15")
+    assert backtest.summarise(p, 1.0)["mae_mw"] < backtest.summarise(snv.predictions,
+                                                                      1.0)["mae_mw"]
+    cov = backtest.summarise(p, 1.0)["coverage_80_pct"]
+    assert 50 <= cov <= 98
+
+
+def test_calendar_v2_features():
+    from se3load import quality
+    ts = pd.date_range("2024-12-20T00:00Z", "2025-01-10T00:00Z", freq="1h", inclusive="left")
+    df = quality.add_local_time(pd.DataFrame({"timestamp_utc": ts}))
+    cal = features.calendar_features(df)
+    by = pd.concat([df["local_date"], cal], axis=1).drop_duplicates("local_date") \
+        .set_index("local_date")
+    # 27 and 30 Dec 2024 are klämdagar (bridge days), so they keep the bridge day type.
+    assert not by.loc["2024-12-27", "is_christmas_workday"]
+    assert by.loc["2024-12-27", "daytype"] == "bridge"
+    assert by.loc["2025-01-03", "is_christmas_workday"]          # ordinary Friday
+    assert not by.loc["2024-12-28", "is_christmas_workday"]      # Saturday
+    assert not by.loc["2024-12-31", "is_christmas_workday"]      # Nyårsafton (de facto)
+    assert by.loc["2025-01-02", "is_christmas_workday"]
+    assert not by.loc["2025-01-06", "is_christmas_workday"]      # Trettondedag jul
+    assert not by.loc["2025-01-08", "is_christmas_workday"]      # after the period
+    assert by.loc["2024-12-31", "daytype_v2"] == "holiday_eve"
+    assert by.loc["2024-12-25", "daytype_v2"] == "sunday_or_holiday"
+    X1 = features.linear_design(features.build_features(
+        df.assign(load_mw=1.0, temperature_c=0.0)), calendar="v1")
+    X2 = features.linear_design(features.build_features(
+        df.assign(load_mw=1.0, temperature_c=0.0)), calendar="v2b")
+    assert "is_christmas_period" in X1 and "is_christmas_workday" in X2
+    assert any(c.startswith("holiday_eve_h") for c in X2.columns)

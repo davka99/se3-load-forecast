@@ -189,6 +189,22 @@ results are logged in a separate section at the bottom.
   stays closed. Pre-crisis 2019–2021 is estimated as a comparison.
 - Hourly variant: one HDD slope per local hour, HAC with 168 lags.
 
+### D18. Gradient-boosting quantile model (M7, fixed before its first run)
+- scikit-learn `HistGradientBoostingRegressor`, quantile loss, one model each for the
+  10 %, 50 % and 90 % quantiles. The median is the point forecast because it minimises
+  absolute error, the business metric.
+- Hyperparameters fixed up front, not tuned: 400 iterations, learning rate 0.05,
+  31 leaves, min 40 samples per leaf, L2 = 1, no early stopping (deterministic),
+  seed = config.SEED. They are conventional mid-range values; tuning on the validation
+  year would cost a run and risk overfitting one winter.
+- Features: raw calendar and temperature columns, load lags, day type as a categorical.
+  **No trend term**, because trees cannot extrapolate it; the level shift is handled by
+  recency weights (D11) and lags.
+- Crossing quantiles are sorted per row (monotone rearrangement).
+- Also evaluated: an **equal-weight average** of linear and GBM (forecast and quantile
+  bounds). It was chosen as a candidate before results because averaging different
+  model types is a cheap, well-known way to cut forecast error.
+
 ## After looking at results
 
 ### R1. M6 results on the validation year (2024-11-01 → 2025-10-31)
@@ -217,3 +233,19 @@ Source: `reports/regression_validation.json`, Actions run 44552103105.
   → **Diagnostic-driven candidate for M7** (allowed, since this is the validation year):
   split the Christmas period into holiday days vs working days in between. Must be
   logged as a post-result change and re-scored on validation only.
+
+
+### D17. Calendar v2 – a diagnostic-driven change (post-result, validation year only)
+- **Trigger:** M6 worst days were the Christmas/New Year period (R1).
+- **Variants**, each defined from the calendar rather than fitted to errors:
+  - v2a: replace the flat `is_christmas_period` flag (24 Dec–6 Jan) with
+    `is_christmas_workday` (ordinary Mon–Fri working days 27 Dec–5 Jan that are not
+    holidays, eves or bridge days).
+  - v2b: v2a + a separate `holiday_eve` day type for de facto holidays
+    (Midsommarafton, Julafton, Nyårsafton), instead of treating them as Sundays.
+- **Honesty note:** the variants were first scored in a local run (v1 228.7, v2a 227.8,
+  v2b 226.7 MW validation MAE for the linear model) and then re-run in Actions.
+- **Rule:** the variant with the lowest validation MAE (linear model) is used for all
+  models in M8. A paired weekly-block bootstrap vs v1 is reported. Only these three
+  variants were tried, so the multiple-comparison risk is small but not zero.
+- The backtest year was not used.

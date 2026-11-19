@@ -60,6 +60,12 @@ def calendar_features(df: pd.DataFrame) -> pd.DataFrame:
     out["is_summer_break"] = d.dt.isocalendar().week.astype(int).isin(SUMMER_BREAK_ISO_WEEKS)
     md = d.dt.month * 100 + d.dt.day
     out["is_christmas_period"] = (md >= 1224) | (md <= 106)
+    # Calendar v2 (M7, diagnostic-driven, D17): ordinary working days between the
+    # Christmas holidays, and de facto holidays (eves) as their own day type.
+    off_day = out["is_public_holiday"] | out["is_de_facto_holiday"] | out["is_bridge_day"]
+    out["is_christmas_workday"] = ((md >= 1227) | (md <= 105)) & (out["dow"] < 5) & ~off_day
+    out["daytype_v2"] = np.where(out["is_de_facto_holiday"] & ~out["is_public_holiday"],
+                                 "holiday_eve", out["daytype"])
     doy = d.dt.dayofyear.to_numpy()
     for k in (1, 2):
         out[f"year_sin{k}"] = np.sin(2 * np.pi * k * doy / 365.25)
@@ -132,16 +138,25 @@ NUMERIC = ["temp", "hdd", "cdd", "temp_ewm12", "temp_ewm48", "hdd_ewm48", "temp_
 FLAGS = ["is_public_holiday", "is_de_facto_holiday", "is_bridge_day", "is_summer_break",
          "is_christmas_period"]
 
+# Calendar variants (D17): v1 = D13 as pre-registered; v2a = Christmas working days
+# flag instead of the flat Christmas-period flag; v2b = v2a + 'holiday_eve' day type.
+CALENDARS = {
+    "v1": {"flags": FLAGS, "daytype": "daytype"},
+    "v2a": {"flags": FLAGS[:-1] + ["is_christmas_workday"], "daytype": "daytype"},
+    "v2b": {"flags": FLAGS[:-1] + ["is_christmas_workday"], "daytype": "daytype_v2"},
+}
+
 
 def linear_design(feat: pd.DataFrame, regime_terms: bool = False,
-                  use_lags: bool = True) -> pd.DataFrame:
+                  use_lags: bool = True, calendar: str = "v1") -> pd.DataFrame:
     """Design matrix for linear models: hour×daytype profile, hour-specific heating
     slope, flags and numeric terms. Optional regime level and regime×hdd terms."""
+    cal = CALENDARS[calendar]
     num = [c for c in NUMERIC if use_lags or not c.startswith("load_")]
     X = feat[num].astype(float).copy()
-    for c in FLAGS:
+    for c in cal["flags"]:
         X[c] = feat[c].astype(float)
-    prof = pd.get_dummies(feat["daytype"] + "_h" + feat["hour"].astype(str), dtype=float)
+    prof = pd.get_dummies(feat[cal["daytype"]] + "_h" + feat["hour"].astype(str), dtype=float)
     X = pd.concat([X, prof], axis=1)
     hours = pd.get_dummies(feat["hour"], prefix="hdd_h", dtype=float)
     X = pd.concat([X, hours.mul(feat["hdd"], axis=0)], axis=1)
@@ -151,3 +166,28 @@ def linear_design(feat: pd.DataFrame, regime_terms: bool = False,
             X[f"regime_{r}"] = ind
             X[f"regime_{r}_x_hdd"] = ind * feat["hdd"]
     return X
+
+
+# Tree models get the raw columns; they find interactions themselves.
+TREE_NUMERIC = ["hour", "dow", "month", "temp", "hdd", "temp_ewm12", "temp_ewm48",
+                "temp_daily_mean", "year_sin1", "year_cos1",
+                "load_d2_same_hour", "load_d2_daily_mean", "load_d7_same_hour",
+                "load_d7_daily_mean"]
+
+
+def tree_design(feat: pd.DataFrame, calendar: str = "v1") -> tuple[pd.DataFrame, list[bool]]:
+    """Feature matrix for gradient boosting plus a categorical mask.
+
+    No trend term: trees cannot extrapolate a trend, and the level shift is handled by
+    recency weights (D11) and the load lags.
+    """
+    cal = CALENDARS[calendar]
+    X = feat[TREE_NUMERIC].astype(float).copy()
+    for c in cal["flags"]:
+        X[c] = feat[c].astype(float)
+    codes = {name: i for i, name in enumerate(sorted(
+        ["sunday_or_holiday", "saturday", "bridge", "monday", "friday", "midweek",
+         "holiday_eve"]))}
+    X["daytype_code"] = feat[cal["daytype"]].map(codes).astype(float)
+    categorical = [c == "daytype_code" for c in X.columns]
+    return X, categorical

@@ -17,6 +17,9 @@ Stages
   regression Linear model backtest on the validation year, temperature sensitivity
              (MW per degC, HAC CI) and a Stockholm-only temperature check
              (reports/regression_validation.json). Needs statsmodels.
+  gbm        Calendar variants (D17) for the linear model, gradient-boosting quantile
+             model and a linear+GBM average, all on the validation year
+             (reports/gbm_validation.json).
 
 The held-out backtest year is only evaluated in M8.
 Network access is only needed for `probe`, `fetch` and `reconcile`.
@@ -376,9 +379,108 @@ def regression_stage() -> None:
                      indent=2, default=str)[:6000])
 
 
+def _christmas_mask(p):
+    import pandas as pd
+
+    md = pd.to_datetime(p["local_date"]).dt.strftime("%m%d")
+    return md.between("1222", "1231") | md.between("0101", "0107")
+
+
+def _season(p):
+    import pandas as pd
+
+    m = pd.to_datetime(p["local_date"]).dt.month
+    return m.map(lambda x: "winter (Nov-Mar)" if x in (11, 12, 1, 2, 3) else "summer (Apr-Oct)")
+
+
+def _extended_summary(p, scale) -> dict:
+    from se3load import backtest, metrics
+
+    out = backtest.summarise(p, scale)
+    out["pinball_q10"] = round(metrics.pinball_loss(p["actual"], p["q10"], 0.1), 1)
+    out["pinball_q90"] = round(metrics.pinball_loss(p["actual"], p["q90"], 0.9), 1)
+    out["mean_interval_width_mw"] = round(float((p["q90"] - p["q10"]).mean()), 1)
+    out["christmas_days"] = backtest.summarise(p[_christmas_mask(p)], scale)
+    out["by_season"] = {k: {"mae_mw": round(float((g["forecast"] - g["actual"]).abs().mean()), 1),
+                            "coverage_80_pct": round(100 * metrics.interval_coverage(
+                                g["actual"], g["q10"], g["q90"]), 1)}
+                        for k, g in p.groupby(_season(p))}
+    return out
+
+
+def _paired(p_a, p_b, seed) -> dict:
+    import pandas as pd
+
+    from se3load import metrics
+
+    m = p_a.merge(p_b[["timestamp_utc", "forecast"]], on="timestamp_utc",
+                  suffixes=("_a", "_b"), validate="one_to_one")
+    weeks = pd.to_datetime(m["local_date"]).dt.strftime("%G-%V").to_numpy()
+    r = metrics.block_bootstrap_mae_diff(m["actual"], m["forecast_a"], m["forecast_b"],
+                                         weeks, seed=seed)
+    return {"mae_diff_mw": round(r["diff"], 1), "ci95_mw": [round(c, 1) for c in r["ci"]]}
+
+
+def gbm_stage() -> None:
+    import time
+
+    import pandas as pd
+
+    from se3load import backtest, features, models, selection
+
+    data = _processed()
+    feat = features.build_features(data)
+    scale = backtest.mase_scale_from_history(data, selection.VAL_START)
+    win = (selection.VAL_START, selection.VAL_END)
+    out: dict = {"window": list(win), "mase_scale_mw": round(scale, 1)}
+    preds = {}
+
+    # D17: calendar variants, scored with the linear model on the validation year.
+    out["calendar_variants_linear"] = {}
+    for cal in ("v1", "v2a", "v2b"):
+        r = backtest.run(feat, models.LinearModel(name=f"linear_{cal}", calendar=cal), *win)
+        backtest.assert_no_leakage(r)
+        preds[f"linear_{cal}"] = r.predictions
+        out["calendar_variants_linear"][cal] = _extended_summary(r.predictions, scale)
+    chosen = min(out["calendar_variants_linear"],
+                 key=lambda c: out["calendar_variants_linear"][c]["mae_mw"])
+    out["calendar_chosen"] = chosen
+    out["calendar_chosen_vs_v1"] = _paired(preds[f"linear_{chosen}"], preds["linear_v1"],
+                                           config.SEED)
+
+    # Gradient boosting with v1 (as pre-registered) and with the chosen calendar.
+    out["gbm"] = {}
+    for cal in sorted({"v1", chosen}):
+        t0 = time.time()
+        r = backtest.run(feat, models.GBMQuantileModel(name=f"gbm_{cal}", calendar=cal,
+                                                       seed=config.SEED), *win)
+        backtest.assert_no_leakage(r)
+        preds[f"gbm_{cal}"] = r.predictions
+        out["gbm"][cal] = _extended_summary(r.predictions, scale)
+        out["gbm"][cal]["runtime_s"] = round(time.time() - t0, 0)
+
+    # Equal-weight average of linear and GBM (forecast and quantiles), same calendar.
+    lin, gbm = preds[f"linear_{chosen}"], preds[f"gbm_{chosen}"]
+    ens = lin.copy()
+    ens["model"] = f"average_{chosen}"
+    for c in ("forecast", "q10", "q90"):
+        ens[c] = (lin[c].to_numpy() + gbm[c].to_numpy()) / 2
+    preds[f"average_{chosen}"] = ens
+    out["average"] = _extended_summary(ens, scale)
+
+    out["paired_vs_linear"] = {
+        "gbm": _paired(gbm, lin, config.SEED),
+        "average": _paired(ens, lin, config.SEED)}
+
+    pd.concat(preds.values(), ignore_index=True).to_csv(
+        config.REPORTS / "predictions" / "validation_m7.csv.gz", index=False)
+    _write_json(config.REPORTS / "gbm_validation.json", out)
+    print(json.dumps(out, indent=2, default=str)[:8000])
+
+
 STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
           "explore": explore_stage, "select": select_stage, "baselines": baselines_stage,
-          "regression": regression_stage}
+          "regression": regression_stage, "gbm": gbm_stage}
 
 
 def main(argv: list[str]) -> int:
