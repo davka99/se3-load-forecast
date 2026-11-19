@@ -1,58 +1,129 @@
-== stage: fetch
+== stage: reconcile
+SE1: 130,134 rows
+SE2: 130,134 rows
+SE3: 130,134 rows
+SE4: 130,134 rows
+zone     SE1     SE2     SE3     SE4
+year                                
+2019  10.310  15.891  82.978  22.957
+2020  10.101  15.704  80.380  22.715
+2021  10.697  15.436  85.865  23.931
+2022  11.139  15.401  80.470  21.867
+2023  11.164  15.094  79.574  21.185
+2024  11.121  15.028  80.876  21.483
+2025  11.002  15.206  79.317  21.203
+2026   0.002   0.002   0.010   0.003
+== stage: quality
 {
-  "file": "esett_consumption_se3.csv.gz",
-  "endpoint": "https://api.opendata.esett.com/EXP15/Consumption",
-  "mba": "10Y1001A1001A46L",
-  "rows": 159318,
-  "first_utc": "2019-01-01 00:00:00+00:00",
-  "last_utc": "2026-10-31 23:45:00+00:00",
-  "duplicated_timestamps": 0,
-  "sign": {
-    "negative": 159318,
-    "zero": 0,
-    "positive": 0,
-    "missing": 0
+  "load": {
+    "raw_rows": 159318,
+    "raw_duplicates": 0,
+    "raw_sign": {
+      "negative": 159318,
+      "zero": 0,
+      "positive": 0,
+      "missing": 0
+    },
+    "resolution_switch_utc": "2023-05-21 22:00:00+00:00",
+    "hours": 68664,
+    "missing_hours": 0,
+    "incomplete_hours": 0,
+    "min_mw": 4801.1,
+    "max_mw": 16289.5,
+    "max_at_utc": "2021-02-10 07:00:00+00:00",
+    "mean_mw": 9258.6
   },
-  "resolution_by_year": {
-    "2019": {
-      "0 days 01:00:00": 8759
+  "load_flags": {
+    "outlier_hours": 19,
+    "outlier_hours_on_holiday_or_eve": 15,
+    "outlier_days": [
+      "2019-06-21",
+      "2020-06-19",
+      "2021-06-25",
+      "2022-05-26",
+      "2022-06-06",
+      "2022-06-24",
+      "2023-06-23",
+      "2024-06-06",
+      "2025-08-23"
+    ],
+    "stuck_hours": 0
+  },
+  "reconciliation": [
+    {
+      "year": 2019,
+      "SE1": 10.31,
+      "SE2": 15.89,
+      "SE3": 82.98,
+      "SE4": 22.96,
+      "esett_total_twh": 132.14,
+      "se3_share_pct": 62.8
     },
-    "2020": {
-      "0 days 01:00:00": 8784
+    {
+      "year": 2020,
+      "SE1": 10.1,
+      "SE2": 15.7,
+      "SE3": 80.38,
+      "SE4": 22.71,
+      "esett_total_twh": 128.9,
+      "se3_share_pct": 62.4,
+      "published_incl_losses_twh": 138.2,
+      "published_excl_losses_twh": 127.3,
+      "esett_vs_excl_losses_pct": 1.3,
+      "esett_vs_incl_losses_pct": -6.7
     },
-    "2021": {
-      "0 days 01:00:00": 8760
+    {
+      "year": 2021,
+      "SE1": 10.7,
+      "SE2": 15.44,
+      "SE3": 85.86,
+      "SE4": 23.93,
+      "esett_total_twh": 135.93,
+      "se3_share_pct": 63.2
     },
-    "2022": {
-      "0 days 01:00:00": 8760
+    {
+      "year": 2022,
+      "SE1": 11.14,
+      "SE2": 15.4,
+      "SE3": 80.47,
+      "SE4": 21.87,
+      "esett_total_twh": 128.88,
+      "se3_share_pct": 62.4
     },
-    "2023": {
-      "0 days 00:15:00": 21511,
-      "0 days 01:00:00": 3383
+    {
+      "year": 2023,
+      "SE1": 11.16,
+      "SE2": 15.09,
+      "SE3": 79.57,
+      "SE4": 21.18,
+      "esett_total_twh": 127.02,
+      "se3_share_pct": 62.6,
+      "published_incl_losses_twh": 134.3,
+      "published_excl_losses_twh": 124.7,
+      "esett_vs_excl_losses_pct": 1.9,
+      "esett_vs_incl_losses_pct": -5.4
     },
-    "2024": {
-      "0 days 00:15:00": 35136
+    {
+      "year": 2024,
+      "SE1": 11.12,
+      "SE2": 15.03,
+      "SE3": 80.88,
+      "SE4": 21.48,
+      "esett_total_twh": 128.51,
+      "se3_share_pct": 62.9,
+      "published_incl_losses_twh": 135.0,
+      "published_excl_losses_twh": 125.6,
+      "esett_vs_excl_losses_pct": 2.3,
+      "esett_vs_incl_losses_pct": -4.8
     },
-    "2025": {
-      "0 days 00:15:00": 35040
-    },
-    "2026": {
-      "0 days 00:15:00": 29184
+    {
+      "year": 2025,
+      "SE1": 11.0,
+      "SE2": 15.21,
+      "SE3": 79.32,
+      "SE4": 21.2,
+      "esett_total_twh": 126.73,
+      "se3_share_pct": 62.6
     }
-  },
-  "annual_sum_mwh_as_published": {
-    "2019": -82986893.8,
-    "2020": -80380234.7,
-    "2021": -85865440.5,
-    "2022": -80469435.4,
-    "2023": -79575638.6,
-    "2024": -80875955.8,
-    "2025": -79317994.2,
-    "2026": -66262484.1
-  }
+  ]
 }
-SMHI Stockholm-Observatoriekullen A (98230): 68,646 rows
-SMHI Göteborg A (71420): 67,792 rows
-SMHI Linköping-Malmslätt (85240): 68,413 rows
-SMHI Uppsala Aut (97510): 67,987 rows
-SMHI Örebro Flygplats (95130): 68,128 rows
