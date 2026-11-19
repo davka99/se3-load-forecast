@@ -12,8 +12,10 @@ Stages
              reports/figures/decomposition.png). Needs statsmodels.
   select     D11: compare training-window options on the validation year
              (reports/d11_training_window.json).
+  baselines  Rolling-origin backtest of the seasonal-naive baselines on the
+             validation year (reports/baselines_validation.json).
 
-Later milestones add: backtest, report.
+The held-out backtest year is only evaluated in M8.
 Network access is only needed for `probe`, `fetch` and `reconcile`.
 """
 
@@ -273,8 +275,36 @@ def select_stage() -> None:
     print(json.dumps(result, indent=2))
 
 
+def baselines_stage() -> None:
+    from se3load import backtest, features, selection
+
+    data = _processed()
+    feat = features.build_features(data)
+    scale = backtest.mase_scale_from_history(data, selection.VAL_START)
+    out = {"window": [selection.VAL_START, selection.VAL_END],
+           "mase_scale_mw": round(scale, 1),
+           "mase_scale_note": "in-sample MAE of the 168 h seasonal naive, 2019-01-01 to "
+                              "the day before the window", "models": {}}
+    preds = []
+    for model in backtest.baselines():
+        res = backtest.run(feat, model, selection.VAL_START, selection.VAL_END)
+        p = res.predictions
+        summ = backtest.summarise(p, scale)
+        p["abs_err"] = (p["forecast"] - p["actual"]).abs()
+        summ["mae_by_month_mw"] = {str(k): round(float(v), 1) for k, v in
+                                   p.groupby(p["local_date"].str[:7])["abs_err"].mean().items()}
+        out["models"][model.name] = summ
+        preds.append(p.drop(columns="abs_err"))
+    path = config.REPORTS / "predictions"
+    path.mkdir(parents=True, exist_ok=True)
+    pd_ = __import__("pandas")
+    pd_.concat(preds).to_csv(path / "validation_baselines.csv.gz", index=False)
+    _write_json(config.REPORTS / "baselines_validation.json", out)
+    print(json.dumps(out, indent=2))
+
+
 STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
-          "explore": explore_stage, "select": select_stage}
+          "explore": explore_stage, "select": select_stage, "baselines": baselines_stage}
 
 
 def main(argv: list[str]) -> int:

@@ -151,6 +151,23 @@ results are logged in a separate section at the bottom.
 - MSTL of daily load (M4): yearly component strength 0.89, weekly 0.30, trend 0.09.
   Weekend days sit ~0.9 GW below weekdays. Yearly component range −3.0 to +4.8 GW.
 
+### D14. Backtest design (M5, fixed before any model is backtested)
+- **Rolling origin, one forecast per target local day**, issued 12:00 on D-1. A model
+  may be fitted only on rows with local_date ≤ D-2. Every fit logs its cutoff, and
+  `assert_no_leakage` re-checks it after each run.
+- **Refit every 28 days** and reuse the latest fit in between, as a production forecast
+  would. Alternatives: refit daily (realistic for a linear model but 365 fits per model)
+  or once (understates what retraining gives). 28 days keeps the gradient-boosting
+  backtest within an Actions run.
+- **Recency weights** (D11) recomputed at each refit relative to its cutoff.
+- **MASE scale:** in-sample MAE of the 168 h seasonal naive on all hourly history
+  before the evaluation window (2019-01-01 → day before). MASE < 1 = better than the
+  seasonal naive was in-sample.
+- **Baselines:** `seasonal_naive_d7` (same local hour one week earlier) and `naive_d2`
+  (same local hour on D-2, the latest day known at bid time).
+- **Windows:** M5–M7 develop on the validation year (2024-11-01 → 2025-10-31).
+  The backtest year (2025-11-01 → 2026-10-31) is run **once**, in M8, for all models.
+
 ## After looking at results
 
 _None yet. (M3 findings above are data facts, not model results.)_
