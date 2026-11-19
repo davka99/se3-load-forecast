@@ -120,3 +120,22 @@ def build(raw_cons: pd.DataFrame, raw_temp: pd.DataFrame,
             "temp_from_latest", "is_holiday_or_eve", "load_robust_z", "flag_load_outlier",
             "flag_load_stuck", "flag_incomplete_hour"]
     return data[cols], summary
+
+
+def with_alternative_temperature(data: pd.DataFrame, raw_temp: pd.DataFrame,
+                                 weights: dict[str, float]) -> pd.DataFrame:
+    """Copy of the processed dataset with temperature from another station weighting
+    (e.g. Stockholm only), cleaned with the same rules. Used for sensitivity checks."""
+    t = raw_temp.copy()
+    t["timestamp_utc"] = pd.to_datetime(t["timestamp_utc"], utc=True)
+    t = t[t["station"].isin(weights)]
+    clean, _ = quality.clean_station_temperature(t)
+    start = str(data["timestamp_utc"].min().date())
+    end = str((data["timestamp_utc"].max() + pd.Timedelta(hours=1)).date())
+    alt = quality.hourly_temperature(clean[["timestamp_utc", "station", "temperature_c"]],
+                                     weights, start, end)
+    out = data.drop(columns=["temperature_c"]).merge(
+        alt[["timestamp_utc", "temperature_c"]], on="timestamp_utc", how="left",
+        validate="one_to_one")
+    out["temperature_c"] = out["temperature_c"].interpolate(limit_area="inside")
+    return out

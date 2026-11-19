@@ -1,4 +1,4 @@
 # One pipeline stage per line. Pushing a change to this file runs the
 # pipeline workflow in the portfolio-agent workspace (see PLAN.md).
-# M5: baselines on the validation year (the backtest year stays closed until M8).
-baselines
+# M6: linear model on the validation year + temperature sensitivity.
+regression

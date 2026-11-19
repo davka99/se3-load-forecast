@@ -14,6 +14,9 @@ Stages
              (reports/d11_training_window.json).
   baselines  Rolling-origin backtest of the seasonal-naive baselines on the
              validation year (reports/baselines_validation.json).
+  regression Linear model backtest on the validation year, temperature sensitivity
+             (MW per degC, HAC CI) and a Stockholm-only temperature check
+             (reports/regression_validation.json). Needs statsmodels.
 
 The held-out backtest year is only evaluated in M8.
 Network access is only needed for `probe`, `fetch` and `reconcile`.
@@ -303,8 +306,79 @@ def baselines_stage() -> None:
     print(json.dumps(out, indent=2))
 
 
+def regression_stage() -> None:
+    import pandas as pd
+
+    from se3load import backtest, build_dataset, features, metrics, models, selection
+    from se3load import sensitivity as sens
+
+    data = _processed()
+    feat = features.build_features(data)
+    scale = backtest.mase_scale_from_history(data, selection.VAL_START)
+    win = (selection.VAL_START, selection.VAL_END)
+    out: dict = {"window": list(win), "mase_scale_mw": round(scale, 1)}
+
+    res = backtest.run(feat, models.LinearModel(), *win)
+    backtest.assert_no_leakage(res)
+    p = res.predictions
+    out["linear"] = backtest.summarise(p, scale)
+    out["linear"]["fits"] = res.fits
+
+    base = pd.read_csv(config.REPORTS / "predictions" / "validation_baselines.csv.gz")
+    sn = base[base["model"] == "seasonal_naive_d7"].set_index("timestamp_utc")["forecast"]
+    p["timestamp_key"] = p["timestamp_utc"].astype(str).str.replace(" ", "T")
+    sn.index = sn.index.astype(str).str.replace(" ", "T")
+    sn_aligned = sn.reindex(p["timestamp_key"]).to_numpy()
+    weeks = pd.to_datetime(p["local_date"]).dt.strftime("%G-%V").to_numpy()
+    cmp = metrics.block_bootstrap_mae_diff(p["actual"], p["forecast"], sn_aligned, weeks,
+                                           seed=config.SEED)
+    out["linear_vs_seasonal_naive"] = {
+        "mae_diff_mw": round(cmp["diff"], 1), "ci95_mw": [round(c, 1) for c in cmp["ci"]],
+        "n_week_blocks": cmp["n_blocks"],
+        "mae_reduction_pct": round(-100 * cmp["diff"] / metrics.mae(p["actual"], sn_aligned), 1)}
+
+    p["err"] = p["forecast"] - p["actual"]
+    daily = p.groupby("local_date").agg(mae=("err", lambda e: e.abs().mean()),
+                                        bias=("err", "mean"))
+    out["linear_worst_days"] = [
+        {"date": d, "mae_mw": round(float(r["mae"]), 0), "bias_mw": round(float(r["bias"]), 0)}
+        for d, r in daily.sort_values("mae", ascending=False).head(10).iterrows()]
+    p["season"] = pd.to_datetime(p["local_date"]).dt.month.map(
+        lambda m: "winter (Nov-Mar)" if m in (11, 12, 1, 2, 3) else "summer (Apr-Oct)")
+    out["linear_by_season"] = {
+        k: {"mae_mw": round(float(g["err"].abs().mean()), 1),
+            "coverage_80_pct": round(100 * metrics.interval_coverage(g["actual"], g["q10"],
+                                                                     g["q90"]), 1)}
+        for k, g in p.groupby("season")}
+
+    # Sensitivity check D3: Stockholm-only temperature.
+    raw_temp = pd.read_csv(config.DATA_RAW / "smhi_air_temperature.csv.gz")
+    sthlm = {"Stockholm-Observatoriekullen A": 1.0}
+    data_s = build_dataset.with_alternative_temperature(data, raw_temp, sthlm)
+    feat_s = features.build_features(data_s)
+    res_s = backtest.run(feat_s, models.LinearModel(name="linear_stockholm_temp"), *win)
+    backtest.assert_no_leakage(res_s)
+    out["linear_stockholm_only_temperature"] = backtest.summarise(res_s.predictions, scale)
+
+    # Temperature sensitivity on post-crisis data up to the end of validation.
+    sens_win = ("2023-01-01", selection.VAL_END)
+    out["sensitivity_weighted_temp"] = sens.daily_sensitivity(feat, *sens_win)
+    out["sensitivity_stockholm_temp"] = sens.daily_sensitivity(feat_s, *sens_win)
+    out["sensitivity_pre_crisis_2019_2021"] = sens.daily_sensitivity(
+        feat, "2019-01-08", "2021-12-31")
+    out["hourly_slopes_weighted_temp"] = sens.hourly_slopes(feat, *sens_win)
+
+    pred_dir = config.REPORTS / "predictions"
+    p.drop(columns=["timestamp_key", "err", "season"]).to_csv(
+        pred_dir / "validation_linear.csv.gz", index=False)
+    _write_json(config.REPORTS / "regression_validation.json", out)
+    print(json.dumps({k: v for k, v in out.items() if k != "hourly_slopes_weighted_temp"},
+                     indent=2, default=str)[:6000])
+
+
 STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
-          "explore": explore_stage, "select": select_stage, "baselines": baselines_stage}
+          "explore": explore_stage, "select": select_stage, "baselines": baselines_stage,
+          "regression": regression_stage}
 
 
 def main(argv: list[str]) -> int:
