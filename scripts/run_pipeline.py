@@ -8,8 +8,12 @@ Stages
              data/raw/esett_annual_by_zone.csv for reconciliation.
   quality    Build data/processed/se3_hourly.csv.gz, the data-quality summary
              (reports/data_quality_summary.json) and overview figures.
+  explore    MSTL decomposition of daily load (reports/exploration_summary.json,
+             reports/figures/decomposition.png). Needs statsmodels.
+  select     D11: compare training-window options on the validation year
+             (reports/d11_training_window.json).
 
-Later milestones add: features, backtest, report.
+Later milestones add: backtest, report.
 Network access is only needed for `probe`, `fetch` and `reconcile`.
 """
 
@@ -223,7 +227,54 @@ def quality_stage() -> None:
                      indent=2, default=str))
 
 
-STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage}
+def _processed():
+    import pandas as pd
+
+    d = pd.read_csv(config.DATA_PROCESSED / "se3_hourly.csv.gz")
+    d["timestamp_utc"] = pd.to_datetime(d["timestamp_utc"], utc=True)
+    return d
+
+
+def explore_stage() -> None:
+    from se3load import explore, figures
+
+    daily = explore.daily_load(_processed())
+    dec = explore.mstl_daily(daily)
+    strengths = {"trend": explore.trend_strength(dec),
+                 "seasonal_7": explore.seasonal_strength(dec, "seasonal_7"),
+                 "seasonal_365": explore.seasonal_strength(dec, "seasonal_365")}
+    weekly = dec["seasonal_7"].groupby(dec.index.dayofweek).mean()
+    trend_q = dec["trend"].resample("QS").mean()
+    summary = {
+        "daily_days": int(daily.notna().sum()),
+        "strengths": {k: round(v, 3) for k, v in strengths.items()},
+        "weekly_component_by_dow_mw": {int(k): round(float(v), 1) for k, v in weekly.items()},
+        "yearly_component_range_mw": [round(float(dec["seasonal_365"].min()), 0),
+                                      round(float(dec["seasonal_365"].max()), 0)],
+        "trend_quarterly_mw": {str(k.date()): round(float(v), 0) for k, v in trend_q.items()},
+        "resid_sd_mw": round(float(dec["resid"].std()), 1),
+    }
+    _write_json(config.REPORTS / "exploration_summary.json", summary)
+    figures.decomposition(dec, strengths, config.FIGURES / "decomposition.png")
+    print(json.dumps(summary, indent=2))
+
+
+def select_stage() -> None:
+    from se3load import features, selection
+
+    feat = features.build_features(_processed())
+    rows, comparisons = selection.evaluate(feat, seed=config.SEED)
+    result = {"rule": selection.__doc__.strip(), "train_end": selection.TRAIN_END,
+              "validation": [selection.VAL_START, selection.VAL_END],
+              "half_life_days": selection.HALF_LIFE_DAYS,
+              "results": rows, "chosen": selection.choose(rows),
+              "paired_bootstrap_vs_chosen": comparisons}
+    _write_json(config.REPORTS / "d11_training_window.json", result)
+    print(json.dumps(result, indent=2))
+
+
+STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
+          "explore": explore_stage, "select": select_stage}
 
 
 def main(argv: list[str]) -> int:

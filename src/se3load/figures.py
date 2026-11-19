@@ -91,3 +91,38 @@ def load_vs_temperature(data: pd.DataFrame, path: Path,
     fig.text(0.01, -0.02, SOURCE, color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
+
+
+def decomposition(dec: pd.DataFrame, strengths: dict, path: Path) -> None:
+    """MSTL of daily mean load: trend, yearly component, weekly profile."""
+    fig = plt.figure(figsize=(10, 7.2), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    gs = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1.1], hspace=0.55)
+    a1, a2, a3 = (fig.add_subplot(gs[i]) for i in range(3))
+    a1.plot(dec.index, dec["trend"] / 1000, color=BLUE, linewidth=2)
+    a1.set_ylabel("GW", color=TEXT_2, fontsize=9)
+    a1.set_title(f"Trend (strength {strengths['trend']:.2f}) – includes multi-year weather "
+                 "swings, not only structural change", loc="left", color=TEXT_2, fontsize=9)
+    a2.plot(dec.index, dec["seasonal_365"] / 1000, color=BLUE, linewidth=1.5)
+    a2.axhline(0, color=TEXT_2, linewidth=0.8)
+    a2.set_ylabel("GW", color=TEXT_2, fontsize=9)
+    a2.set_title(f"Yearly component (strength {strengths['seasonal_365']:.2f})",
+                 loc="left", color=TEXT_2, fontsize=9)
+    wk = dec["seasonal_7"].groupby(dec.index.dayofweek).mean()
+    labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    a3.bar(labels, wk.to_numpy(), color=BLUE, width=0.6)
+    a3.axhline(0, color=TEXT_2, linewidth=0.8)
+    a3.set_ylabel("MW vs average day", color=TEXT_2, fontsize=9)
+    a3.set_title(f"Weekly component, mean by weekday (strength {strengths['seasonal_7']:.2f})",
+                 loc="left", color=TEXT_2, fontsize=9)
+    for i, v in enumerate(wk.to_numpy()):
+        a3.text(i, v + (40 if v >= 0 else -40), f"{v:+.0f}", ha="center",
+                va="bottom" if v >= 0 else "top", color=TEXT, fontsize=8)
+    for ax in (a1, a2, a3):
+        _style(ax)
+    fig.suptitle("Daily SE3 load is dominated by the yearly cycle; weekends drop ~1 GW",
+                 x=0.125, ha="left", color=TEXT, fontsize=12, fontweight="bold", y=0.98)
+    fig.text(0.01, 0.005, SOURCE + " MSTL (statsmodels), periods 7 and 365 days.",
+             color=TEXT_2, fontsize=7.5)
+    fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)

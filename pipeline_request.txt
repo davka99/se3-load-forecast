@@ -1,5 +1,5 @@
 # One pipeline stage per line. Pushing a change to this file runs the
 # pipeline workflow in the portfolio-agent workspace (see PLAN.md).
-# M3: zone totals for reconciliation, then clean dataset + quality summary.
-reconcile
-quality
+# M4: decomposition + D11 training-window selection on the validation year.
+explore
+select

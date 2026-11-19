@@ -77,3 +77,25 @@ def wilson_interval(successes: int, n: int, z: float = 1.96) -> tuple[float, flo
     centre = (p + z**2 / (2 * n)) / denom
     half = z * math.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / denom
     return centre - half, centre + half
+
+
+def block_bootstrap_mae_diff(y_true, pred_a, pred_b, blocks, n_boot: int = 2000,
+                             seed: int = 0, level: float = 0.95) -> dict:
+    """Paired block bootstrap of MAE(a) - MAE(b).
+
+    Whole blocks (e.g. weeks) are resampled with replacement so that within-block
+    autocorrelation of forecast errors is preserved. Negative = a is better.
+    """
+    y, a, b = (np.asarray(v, dtype=float) for v in (y_true, pred_a, pred_b))
+    blocks = np.asarray(blocks)
+    diff = np.abs(y - a) - np.abs(y - b)
+    uniq, inv = np.unique(blocks, return_inverse=True)
+    sums = np.bincount(inv, weights=diff)
+    counts = np.bincount(inv).astype(float)
+    rng = np.random.default_rng(seed)
+    draws = rng.integers(0, len(uniq), size=(n_boot, len(uniq)))
+    boot = sums[draws].sum(axis=1) / counts[draws].sum(axis=1)
+    alpha = (1 - level) / 2
+    return {"diff": float(diff.mean()),
+            "ci": [float(np.quantile(boot, alpha)), float(np.quantile(boot, 1 - alpha))],
+            "n_blocks": int(len(uniq))}
