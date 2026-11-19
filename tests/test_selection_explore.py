@@ -33,7 +33,8 @@ def test_mstl_recovers_weekly_pattern():
     pytest.importorskip("statsmodels")
     idx = pd.date_range("2019-01-01", periods=365 * 4, freq="D")
     rng = np.random.default_rng(0)
-    week = np.tile([100, 100, 100, 100, 50, -200, -250], len(idx) // 7 + 1)[:len(idx)]
+    # Effect by weekday (Mon=0 .. Sun=6), mapped via dayofweek (2019-01-01 is a Tuesday).
+    week = np.array([100, 100, 100, 100, 50, -200, -250])[idx.dayofweek]
     year = 2000 * np.cos(2 * np.pi * idx.dayofyear / 365.25)
     y = pd.Series(9000 + week + year + rng.normal(0, 30, len(idx)), index=idx)
     dec = explore.mstl_daily(y)

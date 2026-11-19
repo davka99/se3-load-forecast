@@ -56,7 +56,7 @@ copy in `.github/workflows/pipeline.yml` uses `workflow_dispatch`).
       fetch the full window via GitHub Actions.
 - [x] M3. Data quality report (`docs/data_quality.md`) and clean hourly dataset
       `data/processed/se3_hourly.csv.gz` with documented, tested rules.
-- [ ] M4. Exploration: STL decomposition and load–temperature figure; feature
+- [x] M4. Exploration: STL decomposition and load–temperature figure; feature
       module (calendar, heating degrees, lags available at bid time) with tests;
       decide D11 (post-2022 level shift) on the validation year 2024-11 → 2025-10.
 - [ ] M5. Rolling-origin backtest framework + seasonal-naive baselines with tests.

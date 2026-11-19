@@ -97,13 +97,57 @@ results are logged in a separate section at the bottom.
 - **Result:** within +1.3 % to +2.3 % of use excluding losses. Accepted as confirmation
   of unit, sign and coverage. The residual is not decomposed.
 
-### D11. Open: how to handle the post-2022 level shift (decide in M4/M6, before backtest)
+### D11. Post-2022 level shift → recency-weighted training (decided in M4 on the validation year)
 - Finding (M3): at similar temperatures, working-day load in 2023–2026 is 2–5 % lower
   than in 2019–2021.
 - Options: (a) train on 2023-01-01 onwards only; (b) train on all data with a
   period/regime indicator or a smooth trend term; (c) weight recent data more.
 - Criterion, fixed now: choose on a **validation year (2024-11-01 to 2025-10-31)**
   that is separate from the backtest year, never on backtest results.
+- **Procedure (M4):** linear model (Ridge, α = 1, hour×daytype profile, hour-specific
+  heating slopes, flags, D-2/D-7 load lags), trained to 2024-10-31, one fit, scored on
+  all 8,760 validation hours. Half-life for (c) fixed at 365 days *before* the run, not
+  tuned. Primary = model with lags (that is what will be used); without lags reported
+  for context. Paired weekly-block bootstrap (53 weeks, 2,000 draws) for differences.
+
+  | Option | MAE (MW) with lags | Bias | MAE without lags | Bias |
+  |---|---|---|---|---|
+  | (d) all years, no adjustment | 244.3 | +49 | 277.1 | +133 |
+  | (b) all years + regime terms | 240.3 | −69 | 268.3 | −103 |
+  | (c) all years, recency-weighted | **230.4** | −15 | **234.3** | +1 |
+  | (a) 2023 onwards only | 233.3 | −75 | 253.5 | −102 |
+
+  (c) vs (d): −14.0 MW (95 % CI −21.8 to −5.4); vs (b): −9.9 (−17.2 to −2.7);
+  vs (a): −2.9 (−10.3 to +4.5, not distinguishable).
+- **Decision: (c) recency weighting, half-life 365 days**, for all models. It wins on the
+  rule. It is clearly better than ignoring the shift, which over-forecasts by +133 MW
+  without lags and confirms the M3 finding. It cannot be told apart from training on
+  2023+ only, but it keeps the 2019–2022 cold winters in the data with less weight. That
+  matters for the peak hours the business question asks about: 2023+ has few days
+  below −5 °C.
+- Load lags absorb most of the shift on their own (bias +49 vs +133 MW).
+
+### D12. Load data availability at bid time
+- Assumed known at 12:00 on D-1: zone load up to the end of local day D-2. eSett's
+  open data is published with a delay, so a real retailer would use its own metering
+  and Svenska kraftnät's operational data; D-2 is a conservative stand-in.
+- Lags are built on **local calendar dates** (same local clock hour on D-2 and D-7,
+  plus daily means), not fixed UTC offsets. A 48 h UTC lag reads from D-1 for the
+  last hour of the day after the autumn DST change; a test documents this. Autumn
+  duplicate hour → mean of both; spring missing 02:00 → 03:00 of the same day.
+- Leakage test: load encoded as its own hour index; every lag value used across a
+  DST window is checked to come from before local midnight starting D-1.
+
+### D13. Feature set (fixed before the backtest)
+- Calendar: local hour, weekday, day type (`sunday_or_holiday` covers public and de facto
+  holidays, as M3 showed they behave like Sundays; plus saturday, monday, friday, bridge,
+  midweek), industrial summer break (ISO weeks 28–31), Christmas period (24 Dec–6 Jan),
+  yearly Fourier terms (2 harmonics).
+- Temperature: temperature, heating degrees below 15 °C (the M3 scatter flattens around
+  15 °C), cooling degrees above 20 °C, exponentially smoothed temperature (half-life
+  12 h and 48 h, for building inertia), daily mean temperature.
+- MSTL of daily load (M4): yearly component strength 0.89, weekly 0.30, trend 0.09.
+  Weekend days sit ~0.9 GW below weekdays. Yearly component range −3.0 to +4.8 GW.
 
 ## After looking at results
 

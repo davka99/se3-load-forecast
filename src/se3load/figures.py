@@ -114,13 +114,15 @@ def decomposition(dec: pd.DataFrame, strengths: dict, path: Path) -> None:
     a3.axhline(0, color=TEXT_2, linewidth=0.8)
     a3.set_ylabel("MW vs average day", color=TEXT_2, fontsize=9)
     a3.set_title(f"Weekly component, mean by weekday (strength {strengths['seasonal_7']:.2f})",
-                 loc="left", color=TEXT_2, fontsize=9)
+                 loc="left", color=TEXT_2, fontsize=9, pad=10)
+    span = wk.max() - wk.min()
+    a3.set_ylim(wk.min() - 0.25 * span, wk.max() + 0.25 * span)
     for i, v in enumerate(wk.to_numpy()):
-        a3.text(i, v + (40 if v >= 0 else -40), f"{v:+.0f}", ha="center",
+        a3.text(i, v + (0.04 * span if v >= 0 else -0.04 * span), f"{v:+.0f}", ha="center",
                 va="bottom" if v >= 0 else "top", color=TEXT, fontsize=8)
     for ax in (a1, a2, a3):
         _style(ax)
-    fig.suptitle("Daily SE3 load is dominated by the yearly cycle; weekends drop ~1 GW",
+    fig.suptitle("Daily SE3 load: a strong yearly cycle, weekends ~0.9 GW below weekdays",
                  x=0.125, ha="left", color=TEXT, fontsize=12, fontweight="bold", y=0.98)
     fig.text(0.01, 0.005, SOURCE + " MSTL (statsmodels), periods 7 and 365 days.",
              color=TEXT_2, fontsize=7.5)
