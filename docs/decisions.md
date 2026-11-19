@@ -295,3 +295,50 @@ Source: `reports/regression_validation.json`, Actions run 44552103105.
 - **Realism check:** add simulated temperature-forecast error (Gaussian, SD 1.5 °C
   day-ahead, AR(1) across hours with ρ = 0.9; labelled as simulation) to the inputs
   for D and re-score the headline model.
+
+### R3. M8 – held-out backtest, run once as pre-registered in D19
+Source: `reports/backtest_results.json`, Actions run 44565082464. Window: 2025-11-01 →
+2026-10-31, 8,760 hours, 365 forecasts, refits every 28 days on data up to D-2.
+MASE scale 630.0 MW.
+
+| Model | MAE (95 % CI) | RMSE | MAPE | MASE | Bias | 80 % coverage (Wilson CI, n = days) |
+|---|---|---|---|---|---|---|
+| Same hour last week | 567.9 (476.8–676.0) | 799.1 | 5.95 % | 0.901 | −1 | – |
+| Same hour D-2 | 663.4 (609.4–720.7) | 876.0 | 7.26 % | 1.053 | +3 | – |
+| Linear (v2b) | 224.8 (207.9–243.0) | 286.2 | 2.52 % | 0.357 | −64 | 77.5 % (73.0–81.5) |
+| GBM quantile (v2b) | 210.7 (194.7–228.1) | 271.8 | 2.30 % | 0.334 | −47 | 67.8 % (63.0–72.5) |
+| **Average (headline)** | **198.2 (184.8–213.3)** | **252.8** | **2.19 %** | **0.315** | −55 | 77.9 % (73.3–81.8) |
+
+- **Primary:** average vs same hour last week −369.8 MW (95 % CI −477.6 to −279.0),
+  **−65.1 %**. Diebold–Mariano on daily MAE: t = −6.71, p < 0.001.
+- **Secondary:** average vs linear −26.6 MW (CI −36.5 to −16.9), DM t = −5.06, p < 0.001.
+  Average vs GBM −12.5 (CI −23.6 to −1.6), p = 0.027. Linear vs GBM +14.1
+  (CI −4.4 to +33.3), p = 0.17, so those two cannot be ranked. The headline model is
+  also the best model on the backtest; the ranking matches validation.
+- **Segments (average model):** winter 210.1 MW / summer 189.7; weekdays 196.1 /
+  weekends 196.9; holidays and eves (17 days) 246.4; **cold hours < −5 °C (417 h, 30
+  days) 242.6, bias −41**; **daily peak hour 233.6 with bias −130 and 68.5 %
+  coverage**. Peaks are systematically under-forecast and the interval misses them
+  more often.
+- **Cold hours:** linear bias −234 MW (under-forecast), GBM +151 MW (over-forecast).
+  The two models err in opposite directions when it is cold, which is why their
+  average works (−41).
+- **Bias over the year:** −55 MW overall, worse in May/June/Sep/Oct 2026 (−115 to −178
+  MW per month), positive in Jul (+93) and Dec/Feb. Load in Jun–Oct 2026 was 70–240 MW
+  above the same month in 2025 at similar or warmer temperatures. Demand rose in
+  2026, and the recency-weighted level (half-life 365 days) adapts slowly.
+- **Aug–Oct 2026** (temperature from SMHI's less-controlled latest-months data):
+  MAE 184.6, bias −125. Accuracy is not worse than elsewhere, but the bias above
+  shows up here too.
+- **Intervals:** average 77.9 % (Wilson CI on days 73.3–81.8, includes 80 %); linear
+  77.5 %; GBM 67.8 %, too narrow, as on validation.
+- **Simulated weather-forecast error** (AR(1), SD 1.5 °C, ρ 0.9, 5 replicates;
+  SIMULATION): average MAE 241.4 MW (range 232.9–251.8), **+43 MW (+22 %)** vs the
+  perfect-forecast assumption; coverage drops to 68–72 %. Linear suffers more
+  (263–283) than GBM (239–255). The realistic accuracy is therefore ≈ 240 MW / ≈ 2.7 %
+  MAPE, still ~58 % below the seasonal naive.
+- **Hero week** (coldest week of the backtest, 2026-02-11 → 17, coldest day 14 Feb at
+  −9.7 °C daily mean): average MAE 290.7 MW.
+- In this window the seasonal naive was better than its in-sample history
+  (MASE 0.90), so the 65 % reduction is not inflated by an unusually hard year for
+  the baseline.

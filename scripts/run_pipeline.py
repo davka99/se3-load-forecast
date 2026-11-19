@@ -577,9 +577,10 @@ def evaluate_stage() -> None:
     figures.mae_by_model(
         [{"label": labels[n], "mae": out["models"][n]["mae_mw"], "ci": mae_ci[n]} for n in preds],
         config.FIGURES / "backtest_mae_by_model.png",
-        f"Backtest {pd.Timestamp(start):%b %Y}–{pd.Timestamp(end):%b %Y}: the model average "
-        f"has {-out['primary_average_vs_seasonal_naive']['pct_vs_b']:.0f} % lower error "
-        "than 'same hour last week'")
+        f"Model average: {-out['primary_average_vs_seasonal_naive']['pct_vs_b']:.0f} % lower "
+        "hourly error than 'same hour last week'",
+        f"Held-out backtest, SE3, {pd.Timestamp(start):%b %Y}–{pd.Timestamp(end):%b %Y}, "
+        "one forecast per day issued 12:00 the day before")
     temp_daily = feat.groupby("local_date")["temp"].mean()
     temp_daily = temp_daily[(temp_daily.index >= start) & (temp_daily.index <= end)]
     coldest = pd.Timestamp(temp_daily.idxmin())

@@ -62,7 +62,7 @@ copy in `.github/workflows/pipeline.yml` uses `workflow_dispatch`).
 - [x] M5. Rolling-origin backtest framework + seasonal-naive baselines with tests.
 - [x] M6. Regression model + temperature sensitivity with HAC confidence interval.
 - [x] M7. Gradient boosting quantile model and backtest.
-- [ ] M8. Evaluation: metrics with uncertainty, DM test, segment errors,
+- [x] M8. Evaluation: metrics with uncertainty, DM test, segment errors,
       weather-forecast-noise sensitivity.
 - [ ] M9. Final figures, README with real results, QA rerun from scratch,
       skeptic's three objections.
@@ -74,9 +74,9 @@ Max 15 build runs.
 - [x] All data fetched by a script from public sources; raw files and manifest committed
 - [x] `docs/data_quality.md` written; no silent cleaning
 - [x] Annual totals reconciled against a published figure (difference explained)
-- [ ] Baseline and models evaluated on the same held-out backtest
-- [ ] Key metrics reported with uncertainty (CI or interval) and MASE vs baseline
-- [ ] Segment check (winter peak, holidays, weekday/weekend) done
+- [x] Baseline and models evaluated on the same held-out backtest
+- [x] Key metrics reported with uncertainty (CI or interval) and MASE vs baseline
+- [x] Segment check (winter peak, holidays, weekday/weekend) done
 - [ ] `docs/decisions.md` covers every choice that affects results
 - [ ] Tests pass locally (offline) and in GitHub Actions
 - [ ] README follows the portfolio standard with real numbers and limitations

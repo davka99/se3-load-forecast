@@ -158,7 +158,7 @@ def hero_week(pred: pd.DataFrame, path: Path, title: str, subtitle: str) -> None
     plt.close(fig)
 
 
-def mae_by_model(rows: list[dict], path: Path, title: str) -> None:
+def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "") -> None:
     """Horizontal bars: backtest MAE per model with 95 % block-bootstrap CI."""
     rows = sorted(rows, key=lambda r: r["mae"], reverse=True)
     fig, ax = plt.subplots(figsize=(8, 3.6), dpi=150)
@@ -175,7 +175,8 @@ def mae_by_model(rows: list[dict], path: Path, title: str) -> None:
     ax.grid(axis="x", color=GRID, linewidth=0.8)
     ax.set_xlabel("Mean absolute error per hour (MW); line = 95 % weekly-block bootstrap CI",
                   color=TEXT_2, fontsize=8.5)
-    ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold")
+    ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold", pad=18)
+    ax.text(0, 1.02, subtitle, transform=ax.transAxes, color=TEXT_2, fontsize=9, va="bottom")
     fig.text(0.01, -0.09, SOURCE, color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
