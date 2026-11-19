@@ -146,7 +146,7 @@
           "coverage_80_pct": 65.3
         }
       },
-      "runtime_s": 153.0
+      "runtime_s": 283.0
     },
     "v2b": {
       "n_hours": 8760,
@@ -180,7 +180,7 @@
           "coverage_80_pct": 64.3
         }
       },
-      "runtime_s": 155.0
+      "runtime_s": 284.0
     }
   },
   "average": {
