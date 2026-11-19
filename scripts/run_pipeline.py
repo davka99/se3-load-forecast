@@ -62,31 +62,19 @@ def probe() -> None:
         except Exception as exc:  # record and continue: the probe is diagnostic
             summary[f"esett_{label}"] = {"error": repr(exc)}
 
-    # SMHI: station list and candidate matches for the configured names.
+    # SMHI: verify the pinned station ids and record the archive header format.
     try:
         stations = sess.get(smhi.station_list_url(), timeout=60).json()
-        all_st = stations.get("station", [])
-        candidates = {}
-        for name in config.TEMPERATURE_STATIONS:
-            stem = name.split()[0].split("-")[0].lower()
-            candidates[name] = [
-                {"name": s["name"], "key": s["key"], "active": s.get("active"),
-                 "from": s.get("from"), "to": s.get("to")}
-                for s in all_st if stem in s["name"].lower()
-            ]
-        summary["smhi_station_candidates"] = candidates
-        try:
-            ids = smhi.resolve_stations(stations, list(config.TEMPERATURE_STATIONS))
-            summary["smhi_resolved"] = ids
-            first_id = next(iter(ids.values()))
-            csv_text = sess.get(smhi.data_url(first_id, "corrected-archive"), timeout=120).text
-            (out / "smhi_archive_head.csv").write_text("\n".join(csv_text.splitlines()[:20]),
-                                                       encoding="utf-8")
-            latest = sess.get(smhi.data_url(first_id, "latest-months"), timeout=60).json()
-            summary["smhi_latest_keys"] = sorted(latest)
-            summary["smhi_latest_n"] = len(latest.get("value") or [])
-        except KeyError as exc:
-            summary["smhi_resolve_error"] = repr(exc)
+        expected = {sid: name for sid, (name, _) in config.TEMPERATURE_STATIONS.items()}
+        meta = smhi.verify_station_ids(stations, expected)
+        summary["smhi_verified"] = {sid: m["name"] for sid, m in meta.items()}
+        first_id = next(iter(expected))
+        csv_text = sess.get(smhi.data_url(first_id, "corrected-archive"), timeout=120).text
+        (out / "smhi_archive_head.csv").write_text("\n".join(csv_text.splitlines()[:20]),
+                                                   encoding="utf-8")
+        latest = sess.get(smhi.data_url(first_id, "latest-months"), timeout=60).json()
+        summary["smhi_latest_keys"] = sorted(latest)
+        summary["smhi_latest_n"] = len(latest.get("value") or [])
     except Exception as exc:
         summary["smhi"] = {"error": repr(exc)}
 
@@ -95,38 +83,65 @@ def probe() -> None:
 
 
 def fetch() -> None:
-    sess = _session()
-    config.DATA_RAW.mkdir(parents=True, exist_ok=True)
-
-    recs = esett.fetch_consumption_raw(config.BIDDING_ZONE, config.START, config.END, session=sess)
-    cons = esett.parse_consumption(recs)
-    cons.to_csv(config.DATA_RAW / f"esett_consumption_{config.BIDDING_ZONE.lower()}.csv.gz",
-                index=False)
-    print(f"eSett: {len(cons):,} rows, {cons['timestamp_utc'].min()} .. {cons['timestamp_utc'].max()}")
-
-    stations = sess.get(smhi.station_list_url(), timeout=60).json()
-    ids = smhi.resolve_stations(stations, list(config.TEMPERATURE_STATIONS))
-    frames = []
-    for name, sid in ids.items():
-        archive = smhi.parse_archive_csv(sess.get(smhi.data_url(sid, "corrected-archive"),
-                                                  timeout=300).text)
-        latest = smhi.parse_latest_json(sess.get(smhi.data_url(sid, "latest-months"),
-                                                 timeout=60).json())
-        combined = smhi.combine_periods(archive, latest)
-        combined = combined[combined["timestamp_utc"] >= config.START]
-        frames.append(combined.assign(station=name, station_id=sid))
-        print(f"SMHI {name} ({sid}): {len(combined):,} rows")
     import pandas as pd
 
+    sess = _session()
+    config.DATA_RAW.mkdir(parents=True, exist_ok=True)
+    manifest: dict = {"run_at_utc": datetime.now(timezone.utc).isoformat(),
+                      "window_utc": [config.START, config.END]}
+
+    # eSett consumption, stored exactly as published (negative MWh per period).
+    recs = esett.fetch_consumption_raw(config.BIDDING_ZONE, config.START, config.END, session=sess)
+    cons = esett.parse_consumption(recs)
+    path = config.DATA_RAW / f"esett_consumption_{config.BIDDING_ZONE.lower()}.csv.gz"
+    cons.to_csv(path, index=False)
+    manifest["esett"] = {
+        "file": path.name,
+        "endpoint": esett.BASE_URL + esett.CONSUMPTION_PATH,
+        "mba": esett.MBA_EIC[config.BIDDING_ZONE],
+        "rows": len(cons),
+        "first_utc": str(cons["timestamp_utc"].min()),
+        "last_utc": str(cons["timestamp_utc"].max()),
+        "duplicated_timestamps": int(cons["timestamp_utc"].duplicated().sum()),
+        "sign": esett.sign_summary(cons),
+        "resolution_by_year": esett.resolution_by_year(cons),
+        "annual_sum_mwh_as_published": {
+            int(y): round(float(v), 1)
+            for y, v in cons.groupby(cons["timestamp_utc"].dt.year)["consumption"].sum().items()
+        },
+    }
+    print(json.dumps(manifest["esett"], indent=2, default=str))
+
+    # SMHI temperature per pinned station: archive + latest months.
+    stations = sess.get(smhi.station_list_url(), timeout=60).json()
+    expected = {sid: name for sid, (name, _) in config.TEMPERATURE_STATIONS.items()}
+    smhi.verify_station_ids(stations, expected)
+    frames, per_station = [], {}
+    for sid, name in expected.items():
+        archive = smhi.parse_archive_csv(
+            sess.get(smhi.data_url(sid, "corrected-archive"), timeout=300).text)
+        latest = smhi.parse_latest_json(
+            sess.get(smhi.data_url(sid, "latest-months"), timeout=60).json())
+        combined = smhi.combine_periods(archive, latest)
+        combined = combined[(combined["timestamp_utc"] >= pd.Timestamp(config.START, tz="UTC"))
+                            & (combined["timestamp_utc"] < pd.Timestamp(config.END, tz="UTC"))]
+        frames.append(combined.assign(station=name, station_id=sid))
+        per_station[sid] = {
+            "name": name,
+            "rows": len(combined),
+            "first_utc": str(combined["timestamp_utc"].min()),
+            "last_utc": str(combined["timestamp_utc"].max()),
+            "archive_last_utc": str(archive["timestamp_utc"].max()),
+            "missing_values": int(combined["temperature_c"].isna().sum()),
+            "by_source": {k: int(v) for k, v in combined["source"].value_counts().items()},
+        }
+        print(f"SMHI {name} ({sid}): {len(combined):,} rows")
     temps = pd.concat(frames, ignore_index=True)
-    temps.to_csv(config.DATA_RAW / "smhi_air_temperature.csv.gz", index=False)
-    _write_json(config.DATA_RAW / "fetch_manifest.json", {
-        "run_at_utc": datetime.now(timezone.utc).isoformat(),
-        "window": [config.START, config.END],
-        "esett_rows": len(cons),
-        "smhi_station_ids": ids,
-        "smhi_rows": len(temps),
-    })
+    path = config.DATA_RAW / "smhi_air_temperature.csv.gz"
+    temps.to_csv(path, index=False)
+    manifest["smhi"] = {"file": path.name, "rows": len(temps), "stations": per_station}
+
+    _write_json(config.DATA_RAW / "fetch_manifest.json", manifest)
 
 
 STAGES = {"probe": probe, "fetch": fetch}

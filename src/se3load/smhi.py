@@ -25,13 +25,25 @@ def data_url(station_id: int, period: str, parameter: int = AIR_TEMPERATURE) -> 
     return f"{BASE_URL}/parameter/{parameter}/station/{station_id}/period/{period}/data.{ext}"
 
 
-def resolve_stations(station_json: dict, names: list[str]) -> dict[str, int]:
-    """Map exact station names to SMHI station ids. Fails if any name is missing."""
-    lookup = {s["name"]: int(s["key"]) for s in station_json.get("station", [])}
-    missing = [n for n in names if n not in lookup]
-    if missing:
-        raise KeyError(f"SMHI stations not found: {missing}")
-    return {n: lookup[n] for n in names}
+def verify_station_ids(station_json: dict, expected: dict[int, str]) -> dict[int, dict]:
+    """Check that each pinned station id exists, has the expected name and is active.
+
+    Station ids are used instead of names because SMHI names are not unique.
+    Returns the station metadata per id; raises on any mismatch.
+    """
+    by_id = {int(s["key"]): s for s in station_json.get("station", [])}
+    problems = []
+    for sid, name in expected.items():
+        meta = by_id.get(sid)
+        if meta is None:
+            problems.append(f"{sid}: not in SMHI station list")
+        elif meta.get("name") != name:
+            problems.append(f"{sid}: expected name {name!r}, got {meta.get('name')!r}")
+        elif not meta.get("active", False):
+            problems.append(f"{sid} ({name}): station is not active")
+    if problems:
+        raise ValueError("SMHI station check failed: " + "; ".join(problems))
+    return {sid: by_id[sid] for sid in expected}
 
 
 def parse_archive_csv(text: str) -> pd.DataFrame:

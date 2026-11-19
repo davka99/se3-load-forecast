@@ -38,11 +38,25 @@ def test_combine_prefers_archive():
     assert list(out["source"]) == ["archive", "latest"]
 
 
-def test_resolve_stations():
-    js = {"station": [{"name": "A", "key": "1"}, {"name": "B", "key": "2"}]}
-    assert smhi.resolve_stations(js, ["B"]) == {"B": 2}
-    with pytest.raises(KeyError):
-        smhi.resolve_stations(js, ["C"])
+def test_verify_station_ids_accepts_matching_active_station():
+    js = {"station": [{"name": "A", "key": "1", "active": True},
+                      {"name": "A", "key": "2", "active": False}]}
+    assert set(smhi.verify_station_ids(js, {1: "A"})) == {1}
+
+
+@pytest.mark.parametrize("expected", [{3: "A"}, {1: "B"}, {2: "A"}])
+def test_verify_station_ids_rejects_missing_renamed_or_inactive(expected):
+    js = {"station": [{"name": "A", "key": "1", "active": True},
+                      {"name": "A", "key": "2", "active": False}]}
+    with pytest.raises(ValueError):
+        smhi.verify_station_ids(js, expected)
+
+
+def test_config_station_weights_are_positive_and_names_unique():
+    from se3load import config
+    w = config.station_weights()
+    assert len(w) == len(config.TEMPERATURE_STATIONS)
+    assert all(v > 0 for v in w.values())
 
 
 def test_weighted_temperature_renormalises_when_station_missing():

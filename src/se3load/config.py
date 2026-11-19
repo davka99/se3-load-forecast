@@ -20,18 +20,30 @@ BACKTEST_START = "2025-11-01"
 
 BIDDING_ZONE = "SE3"
 
-# SMHI air temperature stations used for a population-weighted SE3 temperature.
-# Weights are approximate county populations (millions, SCB 2024, rounded).
-# Only relative size matters; sensitivity to the weights is checked in the
-# analysis by comparing against a Stockholm-only temperature.
-TEMPERATURE_STATIONS: dict[str, float] = {
-    "Stockholm-Observatoriekullen A": 2.45,
-    "Göteborg A": 1.75,
-    "Linköping-Malmslätt": 0.47,
-    "Uppsala Aut": 0.40,
-    "Örebro A": 0.31,
-    "Västerås": 0.28,
+# SMHI air temperature stations used for a population-weighted SE3 temperature,
+# pinned by station id (names are not unique in SMHI's list, e.g. two "Västerås").
+# id -> (expected SMHI name, weight). Weights are approximate county populations
+# (millions, SCB 2024, rounded); only relative size matters. Sensitivity to the
+# weights is checked against a Stockholm-only temperature. Verified by the probe
+# run of 2026-11-19 (all six active and covering 2019 onwards).
+TEMPERATURE_STATIONS: dict[int, tuple[str, float]] = {
+    98230: ("Stockholm-Observatoriekullen A", 2.45),  # Stockholms län
+    71420: ("Göteborg A", 1.75),                      # Västra Götalands län
+    85240: ("Linköping-Malmslätt", 0.47),             # Östergötlands län
+    97510: ("Uppsala Aut", 0.40),                     # Uppsala län
+    95130: ("Örebro Flygplats", 0.31),                # Örebro län ("Örebro A" does not exist)
+    96350: ("Västerås", 0.28),                        # Västmanlands län (active id; 28 is a closed namesake)
 }
+
+
+def station_weights() -> dict[str, float]:
+    """Station name -> weight, the form used by smhi.weighted_temperature."""
+    return {name: w for name, w in TEMPERATURE_STATIONS.values()}
+
+
+# eSett publishes consumption as negative energy (MWh) per settlement period
+# (15 min from at least 2024; checked per year by the fetch manifest).
+ESETT_VALUE_KIND = "energy"
 
 # Seasonal period for hourly data (one week) used by the seasonal-naive
 # baseline and the MASE scaling.

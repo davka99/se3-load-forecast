@@ -17,10 +17,20 @@ results are logged in a separate section at the bottom.
   agent cannot create), Svenska kraftnät statistics (monthly files, less convenient).
 - **Impact:** settled consumption may differ from "total load" (e.g. losses, pumping);
   reconciliation in M3 quantifies this.
-- **To verify by probe (M2):** field names, unit (MWh per period vs MW), sign,
-  resolution before/after the 15-minute MTU switch (Oct 2025).
+- **Verified by probe (2026-11-19):** fields `timestamp`, `timestampUTC`, `mba`,
+  `metered`, `profiled`, `flex`, `total`. `total` is **negative** (eSett sign convention
+  for consumption) and published per **15-minute** period already in Jan 2024.
+  Magnitude (≈ −3,100 per 15 min in a cold January week) only makes sense as MWh per
+  period (≈ 12.4 GW average), not as MW (≈ 3.1 GW, far below Stockholm alone).
+  → `ESETT_VALUE_KIND = "energy"`: hourly MWh = sum of the periods; sign flipped
+  explicitly in cleaning with wrong-sign values kept visible. Raw files keep the
+  published sign. Unit is re-checked against annual totals in M3.
 
 ### D3. Population-weighted temperature from six SMHI stations
+- **Stations pinned by id**, not name: the probe showed `Örebro A` does not exist
+  (replaced by `Örebro Flygplats`, 95130) and two stations are called `Västerås`
+  (96350 active, 28 closed). Each run verifies id, name and active flag and stops on
+  any mismatch.
 - **Why:** load responds to where people live. Weights are approximate county
   populations (SCB 2024, rounded): Stockholm 2.45, Västra Götaland 1.75,
   Östergötland 0.47, Uppsala 0.40, Örebro 0.31, Västmanland 0.28 (millions).
