@@ -249,3 +249,48 @@ Source: `reports/regression_validation.json`, Actions run 44552103105.
   models in M8. A paired weekly-block bootstrap vs v1 is reported. Only these three
   variants were tried, so the multiple-comparison risk is small but not zero.
 - The backtest year was not used.
+
+- **Result (Actions run 44556238341):** linear validation MAE v1 228.7, v2a 227.8,
+  **v2b 226.7 MW → v2b chosen**. v2b vs v1: −2.0 MW (95 % CI −3.9 to −0.5). Small
+  overall, as expected for a handful of days. On 22 Dec–7 Jan the linear MAE falls from
+  395.7 to 368.3 MW.
+
+### R2. M7 results on the validation year (`reports/gbm_validation.json`)
+| Model (calendar v2b) | MAE | RMSE | MAPE | MASE | 80 % coverage (winter / summer) | Mean width |
+|---|---|---|---|---|---|---|
+| Linear | 226.7 | 286.4 | 2.53 % | 0.361 | 81.4 % (77.6 / 84.0) | 753 MW |
+| GBM quantile | 227.5 | 295.4 | 2.47 % | 0.363 | **68.0 %** (64.3 / 70.6) | 574 MW |
+| **Average linear + GBM** | **207.3** | **267.7** | **2.26 %** | **0.331** | 80.5 % (74.2 / 84.9) | 664 MW |
+
+- GBM vs linear: +0.9 MW (95 % CI −12.6 to +13.9), a tie overall. GBM is better in
+  summer (182 vs 203 MW) and worse in winter (292 vs 261). Trees cannot extrapolate
+  beyond the temperature and load ranges seen in training, while the linear heating
+  slope can.
+- Average vs linear: **−19.3 MW (95 % CI −27.3 to −11.5)**. The two models make
+  different errors, so averaging helps.
+- **GBM quantiles undercover (68 % for a nominal 80 %).** Quantile loss is fitted
+  in-sample, so the tails come out too narrow. The linear split-conformal intervals
+  are close to nominal. In the average, the two widths offset each other (80.5 %),
+  but winter is still too narrow (74.2 %).
+- With calendar v1, GBM scored 224.8 MW, slightly better than with v2b. The calendar
+  was chosen by the linear-model rule (D17) and is not changed per model, to avoid
+  picking the best of many combinations.
+
+### D19. Pre-registered for M8 (written before the backtest year is opened)
+- **Models:** seasonal naive (D-7), naive (D-2), linear v2b, GBM v2b,
+  average(linear, GBM) v2b. All are run once on 2025-11-01 → 2026-10-31 with the D14
+  framework and refitted every 28 days on data up to D-2. Nothing else changes.
+- **Headline model = the average**, chosen on the validation year. It is reported in
+  the README whatever its backtest rank; if another model wins on the backtest, that
+  is reported as a finding, not used to swap the headline.
+- **Primary comparison:** average vs seasonal naive, MAE with a weekly-block bootstrap
+  CI. Secondary: average vs linear, Diebold–Mariano on daily mean absolute error.
+- **Segments:** winter/summer, cold hours (temperature < −5 °C), daily peak hour,
+  holidays/eves, weekday/weekend, and Aug–Oct 2026, where the temperature comes from
+  SMHI's less-controlled latest-months data.
+- **Intervals:** 80 % coverage with a Wilson CI on daily blocks (share of days with
+  ≥ 80 % of hours covered is *not* used, as it changes the metric). Hourly coverage
+  is reported with the caveat that hours are autocorrelated.
+- **Realism check:** add simulated temperature-forecast error (Gaussian, SD 1.5 °C
+  day-ahead, AR(1) across hours with ρ = 0.9; labelled as simulation) to the inputs
+  for D and re-score the headline model.
