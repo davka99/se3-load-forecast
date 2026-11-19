@@ -1,5 +1,5 @@
 {
-  "run_at_utc": "2026-11-19T14:34:44.983134+00:00",
+  "run_at_utc": "2026-11-19T14:41:14.083199+00:00",
   "esett_winter_2024": {
     "n_records": 672,
     "keys": [
@@ -54,166 +54,22 @@
       "0 days 00:15:00": 671
     }
   },
-  "smhi_station_candidates": {
-    "Stockholm-Observatoriekullen A": [
-      {
-        "name": "Stockholm-Arlanda Flygplats",
-        "key": "97400",
-        "active": true,
-        "from": 1201824000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Stockholm-Bromma Flygplats",
-        "key": "97200",
-        "active": true,
-        "from": -662688000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Stockholm-Observatoriekullen",
-        "key": "98210",
-        "active": false,
-        "from": -3502828800000,
-        "to": 1711929599000
-      },
-      {
-        "name": "Stockholm-Observatoriekullen A",
-        "key": "98230",
-        "active": true,
-        "from": 844128000000,
-        "to": 1795096800000
-      }
-    ],
-    "Göteborg A": [
-      {
-        "name": "Göteborg",
-        "key": "72630",
-        "active": false,
-        "from": -3484512000000,
-        "to": -283996801000
-      },
-      {
-        "name": "Göteborg A",
-        "key": "71420",
-        "active": true,
-        "from": -283996800000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Angered",
-        "key": "14",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Landvetter Flygplats",
-        "key": "72420",
-        "active": true,
-        "from": 244512000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Rosenlund",
-        "key": "15",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Rya",
-        "key": "16",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      }
-    ],
-    "Linköping-Malmslätt": [
-      {
-        "name": "Linköping",
-        "key": "85250",
-        "active": false,
-        "from": -3505507200000,
-        "to": 241919999000
-      },
-      {
-        "name": "Linköping-Malmslätt",
-        "key": "85240",
-        "active": true,
-        "from": -820540800000,
-        "to": 1795096800000
-      }
-    ],
-    "Uppsala Aut": [
-      {
-        "name": "Uppsala",
-        "key": "97520",
-        "active": false,
-        "from": -4102444800000,
-        "to": 486431999000
-      },
-      {
-        "name": "Uppsala Aut",
-        "key": "97510",
-        "active": true,
-        "from": 486432000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Uppsala Flygplats",
-        "key": "97530",
-        "active": true,
-        "from": -804816000000,
-        "to": 1795096800000
-      }
-    ],
-    "Örebro A": [
-      {
-        "name": "Örebro",
-        "key": "95160",
-        "active": false,
-        "from": -3505507200000,
-        "to": 1120175999000
-      },
-      {
-        "name": "Örebro Aut",
-        "key": "95170",
-        "active": false,
-        "from": 657417600000,
-        "to": 840153599000
-      },
-      {
-        "name": "Örebro Flygplats",
-        "key": "95130",
-        "active": true,
-        "from": 596937600000,
-        "to": 1795096800000
-      }
-    ],
-    "Västerås": [
-      {
-        "name": "Västerås",
-        "key": "28",
-        "active": false,
-        "from": 1581588306000,
-        "to": 1635724799000
-      },
-      {
-        "name": "Västerås",
-        "key": "96350",
-        "active": true,
-        "from": -3505507200000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Västerås-Hässlö",
-        "key": "96370",
-        "active": false,
-        "from": -820540800000,
-        "to": 883612799000
-      }
-    ]
+  "smhi_verified": {
+    "98230": "Stockholm-Observatoriekullen A",
+    "71420": "Göteborg A",
+    "85240": "Linköping-Malmslätt",
+    "97510": "Uppsala Aut",
+    "95130": "Örebro Flygplats",
+    "96350": "Västerås"
   },
-  "smhi_resolve_error": "KeyError(\"SMHI stations not found: ['Örebro A']\")"
+  "smhi_latest_keys": [
+    "link",
+    "parameter",
+    "period",
+    "position",
+    "station",
+    "updated",
+    "value"
+  ],
+  "smhi_latest_n": 3134
 }

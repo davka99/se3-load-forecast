@@ -1,6 +1,6 @@
 == stage: probe
 {
-  "run_at_utc": "2026-11-19T14:34:44.983134+00:00",
+  "run_at_utc": "2026-11-19T14:41:14.083199+00:00",
   "esett_winter_2024": {
     "n_records": 672,
     "keys": [
@@ -55,128 +55,81 @@
       "0 days 00:15:00": 671
     }
   },
-  "smhi_station_candidates": {
-    "Stockholm-Observatoriekullen A": [
-      {
-        "name": "Stockholm-Arlanda Flygplats",
-        "key": "97400",
-        "active": true,
-        "from": 1201824000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Stockholm-Bromma Flygplats",
-        "key": "97200",
-        "active": true,
-        "from": -662688000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Stockholm-Observatoriekullen",
-        "key": "98210",
-        "active": false,
-        "from": -3502828800000,
-        "to": 1711929599000
-      },
-      {
-        "name": "Stockholm-Observatoriekullen A",
-        "key": "98230",
-        "active": true,
-        "from": 844128000000,
-        "to": 1795096800000
-      }
-    ],
-    "Göteborg A": [
-      {
-        "name": "Göteborg",
-        "key": "72630",
-        "active": false,
-        "from": -3484512000000,
-        "to": -283996801000
-      },
-      {
-        "name": "Göteborg A",
-        "key": "71420",
-        "active": true,
-        "from": -283996800000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Angered",
-        "key": "14",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Landvetter Flygplats",
-        "key": "72420",
-        "active": true,
-        "from": 244512000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Rosenlund",
-        "key": "15",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Göteborg-Rya",
-        "key": "16",
-        "active": true,
-        "from": 1356998400000,
-        "to": 1795096800000
-      }
-    ],
-    "Linköping-Malmslätt": [
-      {
-        "name": "Linköping",
-        "key": "85250",
-        "active": false,
-        "from": -3505507200000,
-        "to": 241919999000
-      },
-      {
-        "name": "Linköping-Malmslätt",
-        "key": "85240",
-        "active": true,
-        "from": -820540800000,
-        "to": 1795096800000
-      }
-    ],
-    "Uppsala Aut": [
-      {
-        "name": "Uppsala",
-        "key": "97520",
-        "active": false,
-        "from": -4102444800000,
-        "to": 486431999000
-      },
-      {
-        "name": "Uppsala Aut",
-        "key": "97510",
-        "active": true,
-        "from": 486432000000,
-        "to": 1795096800000
-      },
-      {
-        "name": "Uppsala Flygplats",
-        "key": "97530",
-        "active": true,
-        "from": -804816000000,
-        "to": 1795096800000
-      }
-    ],
-    "Örebro A": [
-      {
-        "name": "Örebro",
-        "key": "95160",
-        "active": false,
-        "from": -3505507200000,
-        "to": 1120175999000
-      },
-      {
-        "name": "Örebro Aut",
-        "key": "9
+  "smhi_verified": {
+    "98230": "Stockholm-Observatoriekullen A",
+    "71420": "Göteborg A",
+    "85240": "Linköping-Malmslätt",
+    "97510": "Uppsala Aut",
+    "95130": "Örebro Flygplats",
+    "96350": "Västerås"
+  },
+  "smhi_latest_keys": [
+    "link",
+    "parameter",
+    "period",
+    "position",
+    "station",
+    "updated",
+    "value"
+  ],
+  "smhi_latest_n": 3134
+}
+== stage: fetch
+{
+  "file": "esett_consumption_se3.csv.gz",
+  "endpoint": "https://api.opendata.esett.com/EXP15/Consumption",
+  "mba": "10Y1001A1001A46L",
+  "rows": 159318,
+  "first_utc": "2019-01-01 00:00:00+00:00",
+  "last_utc": "2026-10-31 23:45:00+00:00",
+  "duplicated_timestamps": 0,
+  "sign": {
+    "negative": 159318,
+    "zero": 0,
+    "positive": 0,
+    "missing": 0
+  },
+  "resolution_by_year": {
+    "2019": {
+      "0 days 01:00:00": 8759
+    },
+    "2020": {
+      "0 days 01:00:00": 8784
+    },
+    "2021": {
+      "0 days 01:00:00": 8760
+    },
+    "2022": {
+      "0 days 01:00:00": 8760
+    },
+    "2023": {
+      "0 days 00:15:00": 21511,
+      "0 days 01:00:00": 3383
+    },
+    "2024": {
+      "0 days 00:15:00": 35136
+    },
+    "2025": {
+      "0 days 00:15:00": 35040
+    },
+    "2026": {
+      "0 days 00:15:00": 29184
+    }
+  },
+  "annual_sum_mwh_as_published": {
+    "2019": -82986893.8,
+    "2020": -80380234.7,
+    "2021": -85865440.5,
+    "2022": -80469435.4,
+    "2023": -79575638.6,
+    "2024": -80875955.8,
+    "2025": -79317994.2,
+    "2026": -66262484.1
+  }
+}
+SMHI Stockholm-Observatoriekullen A (98230): 68,646 rows
+SMHI Göteborg A (71420): 67,792 rows
+SMHI Linköping-Malmslätt (85240): 68,413 rows
+SMHI Uppsala Aut (97510): 67,987 rows
+SMHI Örebro Flygplats (95130): 68,128 rows
+SMHI Västerås (96350): 5,671 rows

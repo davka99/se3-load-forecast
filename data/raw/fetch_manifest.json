@@ -1,0 +1,137 @@
+{
+  "run_at_utc": "2026-11-19T14:41:18.199282+00:00",
+  "window_utc": [
+    "2019-01-01",
+    "2026-11-01"
+  ],
+  "esett": {
+    "file": "esett_consumption_se3.csv.gz",
+    "endpoint": "https://api.opendata.esett.com/EXP15/Consumption",
+    "mba": "10Y1001A1001A46L",
+    "rows": 159318,
+    "first_utc": "2019-01-01 00:00:00+00:00",
+    "last_utc": "2026-10-31 23:45:00+00:00",
+    "duplicated_timestamps": 0,
+    "sign": {
+      "negative": 159318,
+      "zero": 0,
+      "positive": 0,
+      "missing": 0
+    },
+    "resolution_by_year": {
+      "2019": {
+        "0 days 01:00:00": 8759
+      },
+      "2020": {
+        "0 days 01:00:00": 8784
+      },
+      "2021": {
+        "0 days 01:00:00": 8760
+      },
+      "2022": {
+        "0 days 01:00:00": 8760
+      },
+      "2023": {
+        "0 days 00:15:00": 21511,
+        "0 days 01:00:00": 3383
+      },
+      "2024": {
+        "0 days 00:15:00": 35136
+      },
+      "2025": {
+        "0 days 00:15:00": 35040
+      },
+      "2026": {
+        "0 days 00:15:00": 29184
+      }
+    },
+    "annual_sum_mwh_as_published": {
+      "2019": -82986893.8,
+      "2020": -80380234.7,
+      "2021": -85865440.5,
+      "2022": -80469435.4,
+      "2023": -79575638.6,
+      "2024": -80875955.8,
+      "2025": -79317994.2,
+      "2026": -66262484.1
+    }
+  },
+  "smhi": {
+    "file": "smhi_air_temperature.csv.gz",
+    "rows": 346637,
+    "stations": {
+      "98230": {
+        "name": "Stockholm-Observatoriekullen A",
+        "rows": 68646,
+        "first_utc": "2019-01-01 00:00:00+00:00",
+        "last_utc": "2026-10-31 23:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 66445,
+          "latest": 2201
+        }
+      },
+      "71420": {
+        "name": "Göteborg A",
+        "rows": 67792,
+        "first_utc": "2019-01-01 00:00:00+00:00",
+        "last_utc": "2026-10-31 23:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 65591,
+          "latest": 2201
+        }
+      },
+      "85240": {
+        "name": "Linköping-Malmslätt",
+        "rows": 68413,
+        "first_utc": "2019-01-01 00:00:00+00:00",
+        "last_utc": "2026-10-31 23:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 66214,
+          "latest": 2199
+        }
+      },
+      "97510": {
+        "name": "Uppsala Aut",
+        "rows": 67987,
+        "first_utc": "2019-01-01 00:00:00+00:00",
+        "last_utc": "2026-10-31 23:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 65807,
+          "latest": 2180
+        }
+      },
+      "95130": {
+        "name": "Örebro Flygplats",
+        "rows": 68128,
+        "first_utc": "2019-01-01 00:00:00+00:00",
+        "last_utc": "2026-10-31 23:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 65929,
+          "latest": 2199
+        }
+      },
+      "96350": {
+        "name": "Västerås",
+        "rows": 5671,
+        "first_utc": "2019-01-01 06:00:00+00:00",
+        "last_utc": "2026-10-31 18:00:00+00:00",
+        "archive_last_utc": "2026-08-01 06:00:00+00:00",
+        "missing_values": 0,
+        "by_source": {
+          "archive": 5488,
+          "latest": 183
+        }
+      }
+    }
+  }
+}
