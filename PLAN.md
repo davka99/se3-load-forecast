@@ -77,7 +77,7 @@ Max 15 build runs.
 - [x] Baseline and models evaluated on the same held-out backtest
 - [x] Key metrics reported with uncertainty (CI or interval) and MASE vs baseline
 - [x] Segment check (winter peak, holidays, weekday/weekend) done
-- [ ] `docs/decisions.md` covers every choice that affects results
+- [x] `docs/decisions.md` covers every choice that affects results
 - [ ] Tests pass locally (offline) and in GitHub Actions
-- [ ] README follows the portfolio standard with real numbers and limitations
+- [x] README follows the portfolio standard with real numbers and limitations
 - [ ] Every number in README is reproducible by `run_pipeline.py`

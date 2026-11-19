@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       stages:
-        description: "Space-separated stages, e.g. 'fetch'"
+        description: "Space-separated stages: fetch reconcile quality explore select baselines regression gbm evaluate"
         required: true
-        default: "fetch"
+        default: "quality explore select baselines regression gbm evaluate"
 
 permissions:
   contents: write
