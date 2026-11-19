@@ -7,7 +7,9 @@ weather observations from SMHI, and compares them with a simple "same hour last 
 
 > **Status: work in progress.** Results below are placeholders until the backtest is done.
 
-<!-- Figure: forecast vs actual for a cold winter week (added in M9) -->
+![Weekly SE3 consumption and temperature 2019–2026](reports/figures/overview_load_temperature.png)
+
+<!-- Final hero figure (forecast vs actual, cold week) replaces this in M9 -->
 
 ## Business question
 
@@ -46,6 +48,11 @@ All data is real and public. Nothing is synthetic except the small test fixtures
 | [eSett Open Data API](https://api.opendata.esett.com) | Settled consumption, MBA SE3 | eSett open data terms |
 | [SMHI Open Data](https://opendata.smhi.se/apidocs/metobs/) | Hourly air temperature | CC BY 4.0 |
 
+Data quality is documented in [docs/data_quality.md](docs/data_quality.md). Both sources
+are complete for 2019-01 to 2026-10: no missing or duplicate consumption hours, and no
+hour without temperature. The four-zone eSett total matches official Swedish electricity
+use (excluding grid losses) to within 2.5 %. SE3 is about 63 % of national consumption.
+
 ## How to run
 
 Requires Python 3.12.
@@ -55,7 +62,8 @@ Requires Python 3.12.
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m pytest
-python scripts/run_pipeline.py fetch   # downloads data (needs internet)
+python scripts/run_pipeline.py fetch reconcile   # downloads data (needs internet)
+python scripts/run_pipeline.py quality           # clean dataset, data-quality summary, figures
 ```
 
 **Windows (PowerShell)**
@@ -63,7 +71,8 @@ python scripts/run_pipeline.py fetch   # downloads data (needs internet)
 python -m venv .venv; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m pytest
-python scripts/run_pipeline.py fetch
+python scripts/run_pipeline.py fetch reconcile
+python scripts/run_pipeline.py quality
 ```
 
 ## Project structure

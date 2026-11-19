@@ -6,7 +6,7 @@ results are logged in a separate section at the bottom.
 ## Before looking at results
 
 ### D1. Bidding zone SE3 only
-- **Why:** SE3 holds Stockholm and Göteborg and about two thirds of Swedish consumption (to be confirmed in M3); it
+- **Why:** SE3 holds Stockholm and Göteborg and about 63 % of Swedish settled consumption (62.4–63.2 % in 2019–2025, measured in M3); it
   is the zone most Swedish retailers forecast.
 - **Alternatives:** all of Sweden; all four zones. Kept as possible extensions.
 - **Impact:** findings do not transfer directly to SE1/SE2 (industrial, flatter load).
@@ -72,6 +72,39 @@ results are logged in a separate section at the bottom.
 - **Why:** the build environment has no access to the data APIs or PyPI. Actions output
   (data, test results) is committed back to the branch and counts as the test record.
 
+### D8. Temperature cleaning rules (set before running them)
+- Values outside −45…40 °C and isolated spikes (> 8 °C from the mean of both
+  neighbouring hours, both present) → NaN, flagged. SMHI quality "Y" values are kept
+  unless a rule fires: dropping them would remove real extremes.
+- Weighted temperature renormalised over reporting stations; gaps with no station at
+  all are interpolated only if ≤ 3 hours, longer gaps stay missing.
+- **Result:** 0 rule hits, 0 hours imputed. The rules matter only as a safeguard for
+  future data.
+
+### D9. Load outliers are flagged, never removed
+- Screen: robust z vs same hour-of-week ±1–2 weeks, scale = 1.4826 × rolling 30-day MAD,
+  threshold |z| > 6. Stuck values: ≥ 3 identical consecutive hours.
+- **Why flag only:** the extreme hours are real (holidays, cold snaps), and those are
+  exactly the hours the business question asks about. Removing them would flatter the
+  backtest.
+- **Result:** 19 hours, 15 on holidays/eves; 4 on 2025-08-23 explained by an early cold
+  spell. 0 stuck hours.
+
+### D10. Reconciliation benchmark
+- eSett four-zone total vs national use from Energimyndigheten/SCB (via Energiföretagen,
+  *Energiåret 2024*), with and without transmission losses, for the years the table
+  gives (2020, 2023, 2024).
+- **Result:** within +1.3 % to +2.3 % of use excluding losses. Accepted as confirmation
+  of unit, sign and coverage. The residual is not decomposed.
+
+### D11. Open: how to handle the post-2022 level shift (decide in M4/M6, before backtest)
+- Finding (M3): at similar temperatures, working-day load in 2023–2026 is 2–5 % lower
+  than in 2019–2021.
+- Options: (a) train on 2023-01-01 onwards only; (b) train on all data with a
+  period/regime indicator or a smooth trend term; (c) weight recent data more.
+- Criterion, fixed now: choose on a **validation year (2024-11-01 to 2025-10-31)**
+  that is separate from the backtest year, never on backtest results.
+
 ## After looking at results
 
-_None yet._
+_None yet. (M3 findings above are data facts, not model results.)_
