@@ -11,25 +11,7 @@ tests/test_features.py ........                                          [ 46%]
 tests/test_metrics.py .....                                              [ 55%]
 tests/test_pipeline_cli.py ...                                           [ 60%]
 tests/test_quality.py ...........                                        [ 78%]
-tests/test_selection_explore.py ..F                                      [ 83%]
+tests/test_selection_explore.py ...                                      [ 83%]
 tests/test_smhi.py ..........                                            [100%]
 
-=================================== FAILURES ===================================
-______________________ test_mstl_recovers_weekly_pattern _______________________
-
-    def test_mstl_recovers_weekly_pattern():
-        pytest.importorskip("statsmodels")
-        idx = pd.date_range("2019-01-01", periods=365 * 4, freq="D")
-        rng = np.random.default_rng(0)
-        week = np.tile([100, 100, 100, 100, 50, -200, -250], len(idx) // 7 + 1)[:len(idx)]
-        year = 2000 * np.cos(2 * np.pi * idx.dayofyear / 365.25)
-        y = pd.Series(9000 + week + year + rng.normal(0, 30, len(idx)), index=idx)
-        dec = explore.mstl_daily(y)
-        wk = dec["seasonal_7"].groupby(dec.index.dayofweek).mean()
->       assert wk.iloc[6] < -150 and wk.iloc[0] > 50
-E       assert (np.float64(-202.88359951645873) < -150 and np.float64(-244.8757807804611) > 50)
-
-tests/test_selection_explore.py:41: AssertionError
-=========================== short test summary info ============================
-FAILED tests/test_selection_explore.py::test_mstl_recovers_weekly_pattern - assert (np.float64(-202.88359951645873) < -150 and np.float64(-244.8757807804611) > 50)
-========================= 1 failed, 59 passed in 4.91s =========================
+============================== 60 passed in 4.64s ==============================
