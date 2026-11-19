@@ -3,10 +3,14 @@
 Stages
   probe  Download a small sample from each source and record the schema in
          data/raw/_probe/ (used to verify field names, units and station names).
-  fetch  Download the full study window to data/raw/.
+  fetch      Download the full study window to data/raw/.
+  reconcile  Download annual consumption for all four Swedish zones (eSett) to
+             data/raw/esett_annual_by_zone.csv for reconciliation.
+  quality    Build data/processed/se3_hourly.csv.gz, the data-quality summary
+             (reports/data_quality_summary.json) and overview figures.
 
-Later milestones add: quality, features, backtest, report.
-Network access is only needed for `probe` and `fetch`.
+Later milestones add: features, backtest, report.
+Network access is only needed for `probe`, `fetch` and `reconcile`.
 """
 
 from __future__ import annotations
@@ -144,7 +148,82 @@ def fetch() -> None:
     _write_json(config.DATA_RAW / "fetch_manifest.json", manifest)
 
 
-STAGES = {"probe": probe, "fetch": fetch}
+def reconcile() -> None:
+    import pandas as pd
+
+    from se3load import quality as q
+
+    sess = _session()
+    rows = []
+    for zone in sorted(esett.MBA_EIC):
+        raw = esett.parse_consumption(
+            esett.fetch_consumption_raw(zone, config.START, "2026-01-01", session=sess))
+        local_year = raw["timestamp_utc"].dt.tz_convert(q.LOCAL_TZ).dt.year
+        for year, g in raw.groupby(local_year):
+            rows.append({"zone": zone, "year": int(year), "rows": len(g),
+                         "twh": round(-float(g["consumption"].sum()) / 1e6, 3),
+                         "positive_values": int((g["consumption"] > 0).sum())})
+        print(f"{zone}: {len(raw):,} rows")
+    out = pd.DataFrame(rows)
+    out.to_csv(config.DATA_RAW / "esett_annual_by_zone.csv", index=False)
+    print(out.pivot(index="year", columns="zone", values="twh"))
+
+
+def _reconciliation_table() -> list[dict]:
+    import pandas as pd
+
+    zones_path = config.DATA_RAW / "esett_annual_by_zone.csv"
+    ref_path = config.PROJECT_ROOT / "data" / "reference" / "national_electricity_use.csv"
+    if not zones_path.exists():
+        return []
+    zones = pd.read_csv(zones_path)
+    wide = zones.pivot(index="year", columns="zone", values="twh")
+    wide = wide[[c for c in ["SE1", "SE2", "SE3", "SE4"] if c in wide]]
+    ref = pd.read_csv(ref_path).set_index("year")
+    rows = []
+    for year, r in wide.iterrows():
+        if year < 2019 or year > 2025:
+            continue
+        total = float(r.sum())
+        row = {"year": int(year), **{z: round(float(v), 2) for z, v in r.items()},
+               "esett_total_twh": round(total, 2),
+               "se3_share_pct": round(100 * float(r["SE3"]) / total, 1)}
+        if year in ref.index:
+            incl = float(ref.loc[year, "use_incl_losses_twh"])
+            excl = incl - float(ref.loc[year, "transmission_losses_twh"])
+            row.update({"published_incl_losses_twh": incl,
+                        "published_excl_losses_twh": round(excl, 1),
+                        "esett_vs_excl_losses_pct": round(100 * (total - excl) / excl, 1),
+                        "esett_vs_incl_losses_pct": round(100 * (total - incl) / incl, 1)})
+        rows.append(row)
+    return rows
+
+
+def quality_stage() -> None:
+    import pandas as pd
+
+    from se3load import build_dataset, figures
+    from se3load import quality as q
+
+    cons = pd.read_csv(config.DATA_RAW / f"esett_consumption_{config.BIDDING_ZONE.lower()}.csv.gz")
+    cons["timestamp_utc"] = pd.to_datetime(cons["timestamp_utc"], utc=True)
+    temp = pd.read_csv(config.DATA_RAW / "smhi_air_temperature.csv.gz")
+    data, summary = build_dataset.build(cons, temp)
+    summary["reconciliation"] = _reconciliation_table()
+    summary["period_shift_by_temperature"] = q.period_shift_by_temperature(
+        data, ("2019-01-01", "2021-12-31"), ("2023-01-01", "2026-10-31"))
+
+    config.DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+    config.FIGURES.mkdir(parents=True, exist_ok=True)
+    data.to_csv(config.DATA_PROCESSED / "se3_hourly.csv.gz", index=False)
+    _write_json(config.REPORTS / "data_quality_summary.json", summary)
+    figures.overview(data, config.FIGURES / "overview_load_temperature.png")
+    figures.load_vs_temperature(data, config.FIGURES / "load_vs_temperature.png")
+    print(json.dumps({k: summary[k] for k in ("load", "load_flags", "reconciliation")},
+                     indent=2, default=str))
+
+
+STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage}
 
 
 def main(argv: list[str]) -> int:
