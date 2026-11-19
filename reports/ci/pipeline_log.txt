@@ -1,57 +1,250 @@
-== stage: baselines
+== stage: regression
 {
   "window": [
     "2024-11-01",
     "2025-10-31"
   ],
   "mase_scale_mw": 627.1,
-  "mase_scale_note": "in-sample MAE of the 168 h seasonal naive, 2019-01-01 to the day before the window",
-  "models": {
-    "seasonal_naive_d7": {
-      "n_hours": 8760,
-      "n_missing_forecast": 0,
-      "mae_mw": 644.3,
-      "rmse_mw": 910.1,
-      "mape_pct": 6.82,
-      "mase": 1.027,
-      "bias_mw": -5.4,
-      "mae_by_month_mw": {
-        "2024-11": 1017.9,
-        "2024-12": 1007.7,
-        "2025-01": 996.5,
-        "2025-02": 937.8,
-        "2025-03": 863.4,
-        "2025-04": 689.9,
-        "2025-05": 585.7,
-        "2025-06": 370.5,
-        "2025-07": 256.4,
-        "2025-08": 320.5,
-        "2025-09": 250.7,
-        "2025-10": 455.5
+  "linear": {
+    "n_hours": 8760,
+    "n_missing_forecast": 0,
+    "mae_mw": 228.7,
+    "rmse_mw": 289.0,
+    "mape_pct": 2.55,
+    "mase": 0.365,
+    "bias_mw": -13.5,
+    "coverage_80_pct": 81.5,
+    "fits": [
+      {
+        "model": "linear",
+        "first_target": "2024-11-01",
+        "train_cutoff": "2024-10-30",
+        "train_max_date": "2024-10-30",
+        "n_train": 50952
+      },
+      {
+        "model": "linear",
+        "first_target": "2024-11-29",
+        "train_cutoff": "2024-11-27",
+        "train_max_date": "2024-11-27",
+        "n_train": 51624
+      },
+      {
+        "model": "linear",
+        "first_target": "2024-12-27",
+        "train_cutoff": "2024-12-25",
+        "train_max_date": "2024-12-25",
+        "n_train": 52296
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-01-24",
+        "train_cutoff": "2025-01-22",
+        "train_max_date": "2025-01-22",
+        "n_train": 52968
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-02-21",
+        "train_cutoff": "2025-02-19",
+        "train_max_date": "2025-02-19",
+        "n_train": 53640
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-03-21",
+        "train_cutoff": "2025-03-19",
+        "train_max_date": "2025-03-19",
+        "n_train": 54312
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-04-18",
+        "train_cutoff": "2025-04-16",
+        "train_max_date": "2025-04-16",
+        "n_train": 54983
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-05-16",
+        "train_cutoff": "2025-05-14",
+        "train_max_date": "2025-05-14",
+        "n_train": 55655
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-06-13",
+        "train_cutoff": "2025-06-11",
+        "train_max_date": "2025-06-11",
+        "n_train": 56327
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-07-11",
+        "train_cutoff": "2025-07-09",
+        "train_max_date": "2025-07-09",
+        "n_train": 56999
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-08-08",
+        "train_cutoff": "2025-08-06",
+        "train_max_date": "2025-08-06",
+        "n_train": 57671
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-09-05",
+        "train_cutoff": "2025-09-03",
+        "train_max_date": "2025-09-03",
+        "n_train": 58343
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-10-03",
+        "train_cutoff": "2025-10-01",
+        "train_max_date": "2025-10-01",
+        "n_train": 59015
+      },
+      {
+        "model": "linear",
+        "first_target": "2025-10-31",
+        "train_cutoff": "2025-10-29",
+        "train_max_date": "2025-10-29",
+        "n_train": 59688
       }
+    ]
+  },
+  "linear_vs_seasonal_naive": {
+    "mae_diff_mw": -415.6,
+    "ci95_mw": [
+      -520.6,
+      -318.2
+    ],
+    "n_week_blocks": 53,
+    "mae_reduction_pct": 64.5
+  },
+  "linear_worst_days": [
+    {
+      "date": "2024-12-31",
+      "mae_mw": 822.0,
+      "bias_mw": -822.0
     },
-    "naive_d2": {
-      "n_hours": 8760,
-      "n_missing_forecast": 0,
-      "mae_mw": 692.0,
-      "rmse_mw": 923.7,
-      "mape_pct": 7.69,
-      "mase": 1.104,
-      "bias_mw": -1.9,
-      "mae_by_month_mw": {
-        "2024-11": 900.5,
-        "2024-12": 1009.5,
-        "2025-01": 725.9,
-        "2025-02": 688.8,
-        "2025-03": 790.9,
-        "2025-04": 657.5,
-        "2025-05": 642.9,
-        "2025-06": 680.6,
-        "2025-07": 400.1,
-        "2025-08": 557.6,
-        "2025-09": 683.1,
-        "2025-10": 571.7
-      }
+    {
+      "date": "2025-01-06",
+      "mae_mw": 737.0,
+      "bias_mw": -737.0
+    },
+    {
+      "date": "2025-01-04",
+      "mae_mw": 651.0,
+      "bias_mw": -651.0
+    },
+    {
+      "date": "2024-12-22",
+      "mae_mw": 593.0,
+      "bias_mw": 593.0
+    },
+    {
+      "date": "2024-12-05",
+      "mae_mw": 591.0,
+      "bias_mw": -591.0
+    },
+    {
+      "date": "2025-01-03",
+      "mae_mw": 588.0,
+      "bias_mw": -588.0
+    },
+    {
+      "date": "2025-05-07",
+      "mae_mw": 569.0,
+      "bias_mw": 569.0
+    },
+    {
+      "date": "2025-01-13",
+      "mae_mw": 552.0,
+      "bias_mw": -552.0
+    },
+    {
+      "date": "2024-12-03",
+      "mae_mw": 545.0,
+      "bias_mw": -545.0
+    },
+    {
+      "date": "2025-06-21",
+      "mae_mw": 542.0,
+      "bias_mw": 542.0
     }
+  ],
+  "linear_by_season": {
+    "summer (Apr-Oct)": {
+      "mae_mw": 203.1,
+      "coverage_80_pct": 84.3
+    },
+    "winter (Nov-Mar)": {
+      "mae_mw": 264.8,
+      "coverage_80_pct": 77.6
+    }
+  },
+  "linear_stockholm_only_temperature": {
+    "n_hours": 8760,
+    "n_missing_forecast": 0,
+    "mae_mw": 256.7,
+    "rmse_mw": 327.9,
+    "mape_pct": 2.84,
+    "mase": 0.409,
+    "bias_mw": -24.9,
+    "coverage_80_pct": 80.7
+  },
+  "sensitivity_weighted_temp": {
+    "window": [
+      "2023-01-01",
+      "2025-10-31"
+    ],
+    "n_days": 1035,
+    "mw_per_degc_below_15": 202.4,
+    "ci95": [
+      188.4,
+      216.4
+    ],
+    "hac_se": 7.13,
+    "naive_ols_se": 3.06,
+    "hac_lags_days": 14,
+    "r2": 0.976,
+    "gwh_per_day_per_degc": 4.86
+  },
+  "sensitivity_stockholm_temp": {
+    "window": [
+      "2023-01-01",
+      "2025-10-31"
+    ],
+    "n_days": 1035,
+    "mw_per_degc_below_15": 189.9,
+    "ci95": [
+      173.3,
+      206.6
+    ],
+    "hac_se": 8.49,
+    "naive_ols_se": 3.31,
+    "hac_lags_days": 14,
+    "r2": 0.971,
+    "gwh_per_day_per_degc": 4.56
+  },
+  "sensitivity_pre_crisis_2019_2021": {
+    "window": [
+      "2019-01-08",
+      "2021-12-31"
+    ],
+    "n_days": 1089,
+    "mw_per_degc_below_15": 227.0,
+    "ci95": [
+      214.3,
+      239.7
+    ],
+    "hac_se": 6.48,
+    "naive_ols_se": 2.89,
+    "hac_lags_days": 14,
+    "r2": 0.979,
+    "gwh_per_day_per_degc": 5.45
   }
 }
