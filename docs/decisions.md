@@ -288,9 +288,10 @@ Source: `reports/regression_validation.json`, Actions run 44552103105.
 - **Segments:** winter/summer, cold hours (temperature < −5 °C), daily peak hour,
   holidays/eves, weekday/weekend, and Aug–Oct 2026, where the temperature comes from
   SMHI's less-controlled latest-months data.
-- **Intervals:** 80 % coverage with a Wilson CI on daily blocks (share of days with
-  ≥ 80 % of hours covered is *not* used, as it changes the metric). Hourly coverage
-  is reported with the caveat that hours are autocorrelated.
+- **Intervals:** hourly 80 % coverage, with a Wilson CI that uses the number of days
+  as the effective sample size (successes = coverage × days). Hours within a day are
+  strongly autocorrelated, so counting hours as independent would make the CI far too
+  narrow. Pinball loss is reported for q10 and q90.
 - **Realism check:** add simulated temperature-forecast error (Gaussian, SD 1.5 °C
   day-ahead, AR(1) across hours with ρ = 0.9; labelled as simulation) to the inputs
   for D and re-score the headline model.
