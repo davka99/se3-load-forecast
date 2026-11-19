@@ -1,0 +1,74 @@
+[
+  {
+    "timestamp": "2024-01-08T01:00:00",
+    "timestampUTC": "2024-01-08T00:00:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2046.311354,
+    "profiled": -1224.953498,
+    "total": -3271.264852
+  },
+  {
+    "timestamp": "2024-01-08T01:15:00",
+    "timestampUTC": "2024-01-08T00:15:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2049.243441,
+    "profiled": -1223.692833,
+    "total": -3272.936274
+  },
+  {
+    "timestamp": "2024-01-08T01:30:00",
+    "timestampUTC": "2024-01-08T00:30:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2029.938717,
+    "profiled": -1222.977024,
+    "total": -3252.915741
+  },
+  {
+    "timestamp": "2024-01-08T01:45:00",
+    "timestampUTC": "2024-01-08T00:45:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2003.846746,
+    "profiled": -1221.30594,
+    "total": -3225.152686
+  },
+  {
+    "timestamp": "2024-01-08T02:00:00",
+    "timestampUTC": "2024-01-08T01:00:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2014.493071,
+    "profiled": -1215.980649,
+    "total": -3230.47372
+  },
+  {
+    "timestamp": "2024-01-08T02:15:00",
+    "timestampUTC": "2024-01-08T01:15:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2037.475245,
+    "profiled": -1213.439538,
+    "total": -3250.914783
+  },
+  {
+    "timestamp": "2024-01-08T02:30:00",
+    "timestampUTC": "2024-01-08T01:30:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2026.597279,
+    "profiled": -1215.153372,
+    "total": -3241.750651
+  },
+  {
+    "timestamp": "2024-01-08T02:45:00",
+    "timestampUTC": "2024-01-08T01:45:00Z",
+    "mba": "SE3",
+    "flex": null,
+    "metered": -2045.159715,
+    "profiled": -1216.207718,
+    "total": -3261.367433
+  }
+]
