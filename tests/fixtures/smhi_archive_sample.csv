@@ -1,0 +1,14 @@
+Stationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter över marken)
+Exempelstation;99999;SMHI:s stationsnät;2.0
+
+Parameternamn;Beskrivning;Enhet
+Lufttemperatur;momentanvärde, 1 gång/tim;degree celsius
+
+Tidsperiod (fr.o.m);Tidsperiod (t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud (decimalgrader)
+1961-01-01 00:00:00;2026-08-01 00:00:00;44.0;59.3;18.0
+
+Datum;Tid (UTC);Lufttemperatur;Kvalitet;;Tidsutsnitt:
+2024-01-08;00:00:00;-12.4;G;;Kvalitetskontrollerade historiska data (utom de senaste 3 mån)
+2024-01-08;01:00:00;-12.9;G;;
+2024-01-08;02:00:00;;G;;
+2024-01-08;03:00:00;-13.6;Y;;

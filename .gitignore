@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+# Raw downloads are committed on purpose (small, gzip CSV) so results are
+# reproducible even if an API changes. Large scratch files go here instead:
+data/tmp/
