@@ -20,5 +20,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Note: the license covers the code. Data in data/raw/ belongs to its publishers
-(eSett Oy, SMHI) and is used under their open data terms; see README "Data".
+Note: the license covers the code. Data in data/raw/ comes from eSett Open Data
+(CC0 1.0) and SMHI Open Data (CC BY 4.0, source: SMHI); see README "Data".
