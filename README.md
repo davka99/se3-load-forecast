@@ -95,7 +95,7 @@ error in finding 5, which is clearly labelled, and (b) the small test fixtures i
 
 | Source | Content | Access | Licence/terms |
 |---|---|---|---|
-| [eSett Open Data API](https://api.opendata.esett.com) | Settled consumption, SE3 (and SE1–SE4 for reconciliation), 2019–2026 | Open REST, no key | eSett open data terms |
+| [eSett Open Data API](https://api.opendata.esett.com) | Settled consumption, SE3 (and SE1–SE4 for reconciliation), 2019–2026 | Open REST, no key | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | [SMHI Open Data](https://opendata.smhi.se/apidocs/metobs/) | Hourly air temperature, 5 stations | Open REST, no key | CC BY 4.0 |
 
 Both sources are complete for Jan 2019 – Oct 2026: no missing or duplicate consumption
@@ -172,4 +172,4 @@ OLS with Newey-West) · SciPy · matplotlib · pytest · GitHub Actions
 
 ## License
 
-Code: MIT. Data belongs to eSett Oy and SMHI and is used under their open data terms.
+Code: MIT. Data: eSett Open Data (CC0 1.0) and SMHI Open Data (CC BY 4.0, source: SMHI).
