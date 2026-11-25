@@ -8,3 +8,6 @@ __pycache__/
 # Raw downloads are committed on purpose (small, gzip CSV) so results are
 # reproducible even if an API changes. Large scratch files go here instead:
 data/tmp/
+
+# CI results live in GitHub Actions, not in the repo.
+reports/ci/
