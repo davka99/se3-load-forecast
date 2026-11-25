@@ -342,3 +342,43 @@ MASE scale 630.0 MW.
 - In this window the seasonal naive was better than its in-sample history
   (MASE 0.90), so the 65 % reduction is not inflated by an unusually hard year for
   the baseline.
+
+### D20. Post-backtest extension: real archived temperature forecasts
+Written before the forecast data were downloaded. Added after R3, so it is evaluated on
+the same held-out year and is **not** an untouched test; the README says so.
+- **Why:** R3's realism check used *simulated* forecast error. The real error has a
+  different structure (larger in cold snaps, a bias between a model grid point and a
+  station), so the limitation "perfect weather forecast" deserves a measured answer.
+- **Data:** Open-Meteo Previous Runs API (CC BY 4.0, from January 2024),
+  `temperature_2m_previous_day1` and `_day2` at the five pinned SMHI stations
+  (coordinates from SMHI's station list), 2025-09-01 → 2026-10-31. `best_match` model;
+  ECMWF IFS 0.25° only if `best_match` has more than 2 % missing values.
+- **Lead time:** the forecast for day D is issued at 12:00 on D-1 (lead 12–36 h).
+  `previous_day1` uses runs made ~24 h before each hour, partly after the deadline
+  (optimistic); `previous_day2` uses runs ~48 h before, all before the deadline
+  (pessimistic). Both are reported; the operational error lies between them.
+- **Bias correction:** forecast minus the mean error of the same UTC hour over the
+  previous 28 days whose observations were known at issue (up to D-2). This is what a
+  forecaster would do with a raw weather feed; raw and corrected are both reported.
+- **Use:** the same models and refits as D19; forecast temperature replaces observed
+  temperature only in the prediction inputs from the backtest start, exactly as the
+  D19 simulation did. Training data are unchanged.
+- **Reported:** MAE with weekly-block CI, bias, coverage, and the change vs the
+  observed-temperature run and vs the seasonal naive.
+
+### D21. Post-backtest extension: online interval recalibration and peak handling
+Written before the calibration was run. Same status as D20 (not an untouched test).
+- **Why:** R3 found GBM intervals too narrow and the daily peak hour under-forecast
+  (−130 MW, 68.5 % coverage). R3's peak segment is the *actual* peak hour, which is
+  only known afterwards, so a fix must be judged on what is known at issue time.
+- **Interval:** conformalised quantile regression, online. For day D, score =
+  max(q10 − y, y − q90) on the previous 90 days with known load (up to D-2), at least
+  28 days; the 80 % quantile of past scores widens [q10, q90]. Separate adjustment for
+  the *predicted* peak hour (highest forecast of the day) and the other hours.
+- **Peak:** two margins learned the same way: (a) the median past residual at the
+  predicted peak hour, added to that hour; (b) the median past gap between the day's
+  highest actual and highest forecast load, added to the forecast daily maximum.
+- **Evaluation:** before vs after on the same days (the first ~29 days have no history
+  and are excluded from both), for all hours, the predicted peak hour, the actual
+  peak hour and the daily maximum. Run on the observed-temperature average (as D19)
+  and on the realistic input (day-2, bias-corrected forecast).

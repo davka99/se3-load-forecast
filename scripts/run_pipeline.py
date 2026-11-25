@@ -22,9 +22,14 @@ Stages
              (reports/gbm_validation.json).
   evaluate   M8: the held-out backtest year, run once for all pre-registered models
              (D19): reports/backtest_results.json, predictions and figures.
+  fetch_forecasts  Download archived day-ahead temperature forecasts for the five
+             stations from Open-Meteo's Previous Runs API (D20) to data/raw/.
+  extensions Post-backtest extensions on the same held-out year (D20 real weather
+             forecasts, D21 online interval recalibration and peak margin):
+             reports/extensions.json and figures. Not an untouched test.
 
 The held-out backtest year is only evaluated in M8.
-Network access is only needed for `probe`, `fetch` and `reconcile`.
+Network access is only needed for `probe`, `fetch`, `reconcile` and `fetch_forecasts`.
 """
 
 from __future__ import annotations
@@ -37,7 +42,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from se3load import config, esett, smhi  # noqa: E402
+from se3load import config, esett, openmeteo, smhi  # noqa: E402
 
 
 def _session():
@@ -603,11 +608,181 @@ def evaluate_stage() -> None:
     print(json.dumps({k: v for k, v in out.items() if k not in ("fits", "segments")},
                      indent=2, default=str)[:9000])
 
+FORECAST_FETCH_START = "2025-09-01"  # two months before the backtest for the bias warm-up
+
+
+def fetch_forecasts() -> None:
+    import pandas as pd
+
+    sess = _session()
+    ids = list(config.TEMPERATURE_STATIONS)
+    names = [config.TEMPERATURE_STATIONS[i][0] for i in ids]
+    stations = sess.get(smhi.station_list_url(), timeout=60).json()
+    smhi.verify_station_ids(stations, {i: config.TEMPERATURE_STATIONS[i][0] for i in ids})
+    coords = openmeteo.station_coordinates(stations, ids)
+    lats, lons = [coords[i][0] for i in ids], [coords[i][1] for i in ids]
+    manifest: dict = {"run_at_utc": datetime.now(timezone.utc).isoformat(),
+                      "endpoint": openmeteo.BASE_URL, "licence": "CC BY 4.0, Open-Meteo.com",
+                      "stations": {str(i): {"name": n, "lat": coords[i][0], "lon": coords[i][1]}
+                                   for i, n in zip(ids, names)},
+                      "attempts": []}
+    end = config.BACKTEST_END
+    chosen = None
+    for model in openmeteo.MODELS:
+        frames, ok = [], True
+        # Monthly chunks keep each response small.
+        for m_start in pd.date_range(FORECAST_FETCH_START, end, freq="MS"):
+            m_end = min(m_start + pd.offsets.MonthEnd(0), pd.Timestamp(end))
+            q = openmeteo.params(lats, lons, f"{m_start:%Y-%m-%d}", f"{m_end:%Y-%m-%d}", model)
+            r = sess.get(openmeteo.BASE_URL, params=q, timeout=120)
+            if r.status_code != 200:
+                manifest["attempts"].append({"model": model, "month": f"{m_start:%Y-%m}",
+                                             "status": r.status_code, "body": r.text[:300]})
+                ok = False
+                break
+            frames.append(openmeteo.parse(r.json(), names))
+        if not ok:
+            continue
+        fc = pd.concat(frames, ignore_index=True)
+        share_missing = float(fc["temperature_c"].isna().mean())
+        manifest["attempts"].append({"model": model, "rows": len(fc),
+                                     "share_missing": round(share_missing, 5)})
+        print(f"Open-Meteo {model}: {len(fc):,} rows, {share_missing:.3%} missing")
+        if share_missing <= 0.02:
+            chosen = (model, fc)
+            break
+    if chosen is None:
+        _write_json(config.DATA_RAW / "forecast_manifest.json", manifest)
+        raise RuntimeError("No Open-Meteo model returned complete forecasts; see manifest")
+    model, fc = chosen
+    path = config.DATA_RAW / "openmeteo_temperature_forecast.csv.gz"
+    fc.to_csv(path, index=False)
+    manifest.update({"model_used": model, "file": path.name, "rows": len(fc),
+                     "first_utc": str(fc["timestamp_utc"].min()),
+                     "last_utc": str(fc["timestamp_utc"].max())})
+    _write_json(config.DATA_RAW / "forecast_manifest.json", manifest)
+
+
+def extensions_stage() -> None:
+    import pandas as pd
+
+    from se3load import backtest, evaluate, extensions, features, figures, metrics, models
+
+    data = _processed()
+    feat = features.build_features(data)
+    start, end = config.BACKTEST_START, config.BACKTEST_END
+    out: dict = {"window": [start, end],
+                 "status": "Post-hoc extensions (D20, D21), evaluated on the same held-out "
+                           "year as D19 after its results were known; not an untouched test."}
+
+    # D20: real archived forecasts in place of observed temperature.
+    fc_long = pd.read_csv(config.DATA_RAW / "openmeteo_temperature_forecast.csv.gz",
+                          parse_dates=["timestamp_utc"])
+    fc_manifest = json.loads((config.DATA_RAW / "forecast_manifest.json").read_text("utf-8"))
+    observed = data.set_index(pd.to_datetime(data["timestamp_utc"], utc=True))["temperature_c"]
+    w = config.station_weights()
+    variants, err_summary, corrected_share = {}, {}, {}
+    win = slice(pd.Timestamp(start, tz="Europe/Stockholm").tz_convert("UTC"),
+                pd.Timestamp(end, tz="Europe/Stockholm").tz_convert("UTC") + pd.Timedelta(days=1))
+    for d in openmeteo.LEAD_DAYS:
+        raw = extensions.weighted_forecast(fc_long, w, d)
+        corr, was_corrected = extensions.bias_corrected(raw, observed)
+        variants[f"forecast_day{d}_raw"] = raw
+        variants[f"forecast_day{d}_corrected"] = corr
+        err_summary[f"day{d}_raw"] = extensions.forecast_error_summary(raw[win], observed)
+        err_summary[f"day{d}_corrected"] = extensions.forecast_error_summary(corr[win], observed)
+        corrected_share[f"day{d}"] = round(float(was_corrected[win].mean()), 4)
+    fsets, n_missing = extensions.forecast_feature_sets(data, variants, start)
+    out["d20"] = {"source": f"Open-Meteo Previous Runs API, model {fc_manifest['model_used']}",
+                  "temperature_forecast_error_backtest_year": err_summary,
+                  "share_hours_bias_corrected": corrected_share,
+                  "hours_missing_forecast_kept_observed": n_missing}
+
+    runs = {}
+    for m in (models.LinearModel(name="linear", calendar="v2b"),
+              models.GBMQuantileModel(name="gbm_quantile", calendar="v2b", seed=config.SEED)):
+        r = backtest.run(feat, m, start, end, extra_predict=fsets)
+        backtest.assert_no_leakage(r)
+        runs[m.name] = r.predictions
+
+    def average(variant):
+        lv = runs["linear"].query("variant == @variant").reset_index(drop=True)
+        gv = runs["gbm_quantile"].query("variant == @variant").reset_index(drop=True)
+        assert (lv["timestamp_utc"].to_numpy() == gv["timestamp_utc"].to_numpy()).all()
+        av = lv.copy()
+        av["model"] = "average"
+        for c in ("forecast", "q10", "q90"):
+            av[c] = (lv[c].to_numpy() + gv[c].to_numpy()) / 2
+        return av.drop(columns="variant")
+
+    preds = {v: average(v) for v in ["observed", *variants]}
+    sn = backtest.run(feat, backtest.baselines()[0], start, end).predictions
+    weeks = lambda p: pd.to_datetime(p["local_date"]).dt.strftime("%G-%V").to_numpy()  # noqa: E731
+    rows = {}
+    for v, p in preds.items():
+        assert (p["timestamp_utc"].to_numpy() == sn["timestamp_utc"].to_numpy()).all()
+        ci = metrics.block_bootstrap_mae_diff(p["actual"], p["forecast"], p["actual"], weeks(p),
+                                              seed=config.SEED)["ci"]
+        vs_sn = metrics.block_bootstrap_mae_diff(p["actual"], p["forecast"], sn["forecast"],
+                                                 weeks(p), seed=config.SEED)
+        rows[v] = {"mae_mw": round(metrics.mae(p["actual"], p["forecast"]), 1),
+                   "mae_ci95_mw": [round(c, 1) for c in ci],
+                   "bias_mw": round(float((p["forecast"] - p["actual"]).mean()), 1),
+                   "coverage_80_pct": round(100 * metrics.interval_coverage(
+                       p["actual"], p["q10"], p["q90"]), 1),
+                   "pct_vs_seasonal_naive": round(100 * vs_sn["diff"] / metrics.mae(
+                       sn["actual"], sn["forecast"]), 1),
+                   "diff_vs_seasonal_naive_ci95_mw": [round(c, 1) for c in vs_sn["ci"]]}
+    out["d20"]["average_model"] = rows
+    obs = preds["observed"]
+    out["d20"]["increase_vs_observed_mw"] = {
+        v: round(rows[v]["mae_mw"] - rows["observed"]["mae_mw"], 1) for v in variants}
+    for d in openmeteo.LEAD_DAYS:
+        p = preds[f"forecast_day{d}_corrected"]
+        r = metrics.block_bootstrap_mae_diff(p["actual"], p["forecast"], obs["forecast"],
+                                             weeks(p), seed=config.SEED)
+        out["d20"][f"day{d}_corrected_vs_observed_ci95_mw"] = [round(c, 1) for c in r["ci"]]
+
+    # D21: online recalibration, on the observed-temperature average (as in D19) and on
+    # the realistic input (day-2 corrected forecast, all runs before the deadline).
+    out["d21"] = {}
+    cal_obs = extensions.online_calibration(obs)
+    out["d21"]["observed_temperature"] = extensions.calibration_summary(cal_obs)
+    cal_fc = extensions.online_calibration(preds["forecast_day2_corrected"])
+    out["d21"]["forecast_day2_corrected"] = extensions.calibration_summary(cal_fc)
+
+    # Figures
+    labels = {"observed": "Observed temperature (D19 setup)",
+              "forecast_day1_raw": "Forecast, ~24 h runs, raw",
+              "forecast_day1_corrected": "Forecast, ~24 h runs, bias-corrected",
+              "forecast_day2_raw": "Forecast, ~48 h runs, raw",
+              "forecast_day2_corrected": "Forecast, ~48 h runs, bias-corrected"}
+    lo = rows["forecast_day1_corrected"]["mae_mw"]
+    hi = rows["forecast_day2_corrected"]["mae_mw"]
+    figures.mae_by_model(
+        [{"label": labels[v], "mae": rows[v]["mae_mw"], "ci": rows[v]["mae_ci95_mw"]}
+         for v in labels],
+        config.FIGURES / "real_weather_forecast_mae.png",
+        f"With real weather forecasts the error is {lo:.0f}–{hi:.0f} MW per hour",
+        "Average model, held-out year, temperature inputs from archived Open-Meteo forecasts")
+    s = out["d21"]["forecast_day2_corrected"]
+    figures.coverage_before_after(
+        [{"label": "All hours", **s["all hours"]},
+         {"label": "Predicted daily peak hour", **s["predicted daily peak hour"]},
+         {"label": "Actual daily peak hour", **s["actual daily peak hour"]}],
+        config.FIGURES / "interval_recalibration.png",
+        "Online recalibration brings the 80 % interval close to 80 %",
+        f"Average model with bias-corrected ~48 h forecasts, {s['n_days']} days "
+        f"({s['first_day']} – {s['last_day']})")
+    _write_json(config.REPORTS / "extensions.json", out)
+    print(json.dumps(out, indent=2, default=str)[:9000])
+
 
 STAGES = {"probe": probe, "fetch": fetch, "reconcile": reconcile, "quality": quality_stage,
           "explore": explore_stage, "select": select_stage, "baselines": baselines_stage,
           "regression": regression_stage, "gbm": gbm_stage,
-          "evaluate": evaluate_stage}
+          "evaluate": evaluate_stage, "fetch_forecasts": fetch_forecasts,
+          "extensions": extensions_stage}
 
 
 def main(argv: list[str]) -> int:

@@ -180,3 +180,35 @@ def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "") -
     fig.text(0.01, -0.09, SOURCE, color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
+
+
+def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: str) -> None:
+    """Grouped horizontal bars: 80 % interval coverage before and after recalibration,
+    with Wilson 95 % CIs on days and a reference line at the nominal 80 %."""
+    fig, ax = plt.subplots(figsize=(8, 3.2), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    h = 0.36
+    for i, r in enumerate(rows):
+        for j, (key, color, label) in enumerate((("before", BLUE, "Model intervals (D19)"),
+                                                 ("after", ORANGE, "Recalibrated online (D21)"))):
+            y = i + (h / 2 if j == 0 else -h / 2)
+            v = r[key]["coverage_80_pct"]
+            ax.barh(y, v, height=h, color=color, label=label if i == 0 else None)
+            lo, hi = r[key]["wilson95_on_days_pct"]
+            ax.plot([lo, hi], [y, y], color=TEXT, linewidth=1.0)
+            ax.text(hi + 1, y, f"{v:.0f} %", va="center", color=TEXT, fontsize=8.5)
+    ax.axvline(80, color=TEXT_2, linewidth=1, linestyle=(0, (4, 3)))
+    ax.text(80, len(rows) - 0.45, "nominal 80 %", color=TEXT_2, fontsize=8, ha="center")
+    ax.set_yticks(range(len(rows)), [r["label"] for r in rows])
+    ax.set_xlim(0, 105)
+    _style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.set_xlabel("Share of hours inside the 80 % interval (%); line = Wilson 95 % CI on days",
+                  color=TEXT_2, fontsize=8.5)
+    ax.legend(loc="lower right", frameon=False, fontsize=8.5)
+    ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold", pad=18)
+    ax.text(0, 1.02, subtitle, transform=ax.transAxes, color=TEXT_2, fontsize=9, va="bottom")
+    fig.text(0.01, -0.1, SOURCE, color=TEXT_2, fontsize=7.5)
+    fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
+    plt.close(fig)
