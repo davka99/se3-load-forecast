@@ -585,7 +585,8 @@ def evaluate_stage() -> None:
         f"Model average: {-out['primary_average_vs_seasonal_naive']['pct_vs_b']:.0f} % lower "
         "hourly error than 'same hour last week'",
         f"Held-out backtest, SE3, {pd.Timestamp(start):%b %Y}–{pd.Timestamp(end):%b %Y}, "
-        "one forecast per day issued 12:00 the day before")
+        "one forecast per day issued 12:00 the day before",
+        highlight=labels["average"])
     temp_daily = feat.groupby("local_date")["temp"].mean()
     temp_daily = temp_daily[(temp_daily.index >= start) & (temp_daily.index <= end)]
     coldest = pd.Timestamp(temp_daily.idxmin())
@@ -752,7 +753,7 @@ def extensions_stage() -> None:
     out["d21"]["forecast_day2_corrected"] = extensions.calibration_summary(cal_fc)
 
     # Figures
-    labels = {"observed": "Observed temperature (D19 setup)",
+    labels = {"observed": "Observed temperature (main backtest)",
               "forecast_day1_raw": "Forecast, ~24 h runs, raw",
               "forecast_day1_corrected": "Forecast, ~24 h runs, bias-corrected",
               "forecast_day2_raw": "Forecast, ~48 h runs, raw",
