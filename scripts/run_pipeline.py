@@ -764,7 +764,8 @@ def extensions_stage() -> None:
          for v in labels],
         config.FIGURES / "real_weather_forecast_mae.png",
         f"With real weather forecasts the error is {lo:.0f}–{hi:.0f} MW per hour",
-        "Average model, held-out year, temperature inputs from archived Open-Meteo forecasts")
+        "Average model, held-out year, temperature inputs from archived Open-Meteo forecasts",
+        source=figures.SOURCE_FORECAST)
     s = out["d21"]["forecast_day2_corrected"]
     figures.coverage_before_after(
         [{"label": "All hours", **s["all hours"]},

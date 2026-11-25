@@ -158,7 +158,8 @@ def hero_week(pred: pd.DataFrame, path: Path, title: str, subtitle: str) -> None
     plt.close(fig)
 
 
-def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "") -> None:
+def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "",
+                 source: str = SOURCE) -> None:
     """Horizontal bars: backtest MAE per model with 95 % block-bootstrap CI."""
     rows = sorted(rows, key=lambda r: r["mae"], reverse=True)
     fig, ax = plt.subplots(figsize=(8, 3.6), dpi=150)
@@ -177,12 +178,17 @@ def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "") -
                   color=TEXT_2, fontsize=8.5)
     ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold", pad=18)
     ax.text(0, 1.02, subtitle, transform=ax.transAxes, color=TEXT_2, fontsize=9, va="bottom")
-    fig.text(0.01, -0.09, SOURCE, color=TEXT_2, fontsize=7.5)
+    fig.text(0.01, -0.09, source, color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
 
 
-def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: str) -> None:
+SOURCE_FORECAST = (SOURCE.removesuffix(". Own calculations.")
+                   + ", Open-Meteo.com (archived temperature forecasts, CC BY 4.0). Own calculations.")
+
+
+def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: str,
+                          source: str = SOURCE_FORECAST) -> None:
     """Grouped horizontal bars: 80 % interval coverage before and after recalibration,
     with Wilson 95 % CIs on days and a reference line at the nominal 80 %."""
     fig, ax = plt.subplots(figsize=(8, 3.2), dpi=150)
@@ -198,7 +204,7 @@ def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: st
             ax.plot([lo, hi], [y, y], color=TEXT, linewidth=1.0)
             ax.text(hi + 1, y, f"{v:.0f} %", va="center", color=TEXT, fontsize=8.5)
     ax.axvline(80, color=TEXT_2, linewidth=1, linestyle=(0, (4, 3)))
-    ax.text(80, len(rows) - 0.45, "nominal 80 %", color=TEXT_2, fontsize=8, ha="center")
+    ax.text(80.8, -0.62, "nominal 80 %", color=TEXT_2, fontsize=8, ha="left", va="center")
     ax.set_yticks(range(len(rows)), [r["label"] for r in rows])
     ax.set_xlim(0, 105)
     _style(ax)
@@ -206,9 +212,10 @@ def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: st
     ax.grid(axis="x", color=GRID, linewidth=0.8)
     ax.set_xlabel("Share of hours inside the 80 % interval (%); line = Wilson 95 % CI on days",
                   color=TEXT_2, fontsize=8.5)
-    ax.legend(loc="lower right", frameon=False, fontsize=8.5)
+    ax.set_ylim(-0.8, len(rows) - 0.4)
+    ax.legend(loc="upper left", bbox_to_anchor=(0, -0.2), ncol=2, frameon=False, fontsize=8.5)
     ax.set_title(title, loc="left", color=TEXT, fontsize=11, fontweight="bold", pad=18)
     ax.text(0, 1.02, subtitle, transform=ax.transAxes, color=TEXT_2, fontsize=9, va="bottom")
-    fig.text(0.01, -0.1, SOURCE, color=TEXT_2, fontsize=7.5)
+    fig.text(0.01, -0.2, source, color=TEXT_2, fontsize=7.5)
     fig.savefig(path, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)

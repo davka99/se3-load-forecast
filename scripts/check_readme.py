@@ -62,6 +62,53 @@ def checks() -> list[tuple[str, str]]:
         ("overall bias", f"overall bias {m['average']['bias_mw']:.0f} MW"),
         ("hero temp", f"{bt['hero_week']['coldest_daily_mean_temp_c']:.1f} °C daily mean"),
     ]
+    return out + extension_checks()
+
+
+def extension_checks() -> list[tuple[str, str]]:
+    """Numbers from the post-backtest extensions (D20, D21)."""
+    if not (ROOT / "reports" / "extensions.json").exists():
+        return []
+    ex = load("extensions.json")
+    am = ex["d20"]["average_model"]
+    inc = ex["d20"]["increase_vs_observed_mw"]
+    out = []
+    for v, label in (("forecast_day1_corrected", "~24 h runs, bias-corrected"),
+                     ("forecast_day2_corrected", "~48 h runs, bias-corrected"),
+                     ("forecast_day2_raw", "~48 h runs, raw")):
+        r = am[v]
+        out.append((f"D20 {v}", f"| {label} | {r['mae_mw']:.1f} MW ({r['mae_ci95_mw'][0]:.1f}–"
+                                f"{r['mae_ci95_mw'][1]:.1f}) | +{inc[v]:.1f} MW | "
+                                f"−{-r['pct_vs_seasonal_naive']:.1f} % |"))
+    lo, hi = am["forecast_day1_corrected"], am["forecast_day2_corrected"]
+    out.append(("D20 range", f"{lo['mae_mw']:.0f}–{hi['mae_mw']:.0f} MW per hour"))
+    out.append(("D20 pct range", f"{-hi['pct_vs_seasonal_naive']:.0f}–"
+                                 f"{-lo['pct_vs_seasonal_naive']:.0f} % below the naive rule"))
+    out.append(("D20 increase", f"raises MAE by {inc['forecast_day1_corrected']:.0f}–"
+                                f"{inc['forecast_day2_corrected']:.0f} MW"))
+    te = ex["d20"]["temperature_forecast_error_backtest_year"]
+    out.append(("D20 temp error", f"{te['day1_corrected']['mae_c']:.1f}–"
+                                  f"{te['day2_corrected']['mae_c']:.1f} °C"))
+    ob = ex["d21"]["observed_temperature"]
+    out.append(("D21 pred peak bias", f"the bias is −{-ob['predicted daily peak hour']['point']['before']['bias_mw']:.0f} MW"))
+    out.append(("D21 daily max obs", f"too low by {-ob['daily_maximum']['before']['bias_mw']:.0f} MW"))
+    fc = ex["d21"]["forecast_day2_corrected"]
+    rows = (("all hours", "80 % coverage, all hours"),
+            ("predicted daily peak hour", "80 % coverage, forecast peak hour"),
+            ("actual daily peak hour", "80 % coverage, actual peak hour"))
+    for key, label in rows:
+        b, a = fc[key]["before"]["coverage_80_pct"], fc[key]["after"]["coverage_80_pct"]
+        out.append((f"D21 {key}", f"| {label} | {b:.1f} % | {a:.1f} % |"))
+    dm = fc["daily_maximum"]
+    out.append(("D21 dm bias", f"| Bias of the forecast daily maximum | −{-dm['before']['bias_mw']:.1f} MW | "
+                               f"−{-dm['after']['bias_mw']:.1f} MW |"))
+    out.append(("D21 dm mae", f"| MAE of the forecast daily maximum | {dm['before']['mae_mw']:.1f} MW | "
+                              f"{dm['after']['mae_mw']:.1f} MW |"))
+    out.append(("D21 rec bias", f"from −{-dm['before']['bias_mw']:.0f} to\n  −{-dm['after']['bias_mw']:.0f} MW"))
+    out.append(("D21 rec cov", f"from {fc['all hours']['before']['coverage_80_pct']:.0f} % to "
+                               f"{fc['all hours']['after']['coverage_80_pct']:.0f} % coverage"))
+    out.append(("D21 margin", f"(about {dm['median_level_margin_mw']:.0f} MW)"))
+    out.append(("D21 actual peak after", f"actual-peak coverage ({fc['actual daily peak hour']['after']['coverage_80_pct']:.0f} %)"))
     return out
 
 
