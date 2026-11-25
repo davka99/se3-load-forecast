@@ -1,0 +1,44 @@
+{
+  "run_at_utc": "2026-11-25T11:30:12.284463+00:00",
+  "endpoint": "https://previous-runs-api.open-meteo.com/v1/forecast",
+  "licence": "CC BY 4.0, Open-Meteo.com",
+  "stations": {
+    "98230": {
+      "name": "Stockholm-Observatoriekullen A",
+      "lat": 59.3417,
+      "lon": 18.0549
+    },
+    "71420": {
+      "name": "Göteborg A",
+      "lat": 57.7156,
+      "lon": 11.9924
+    },
+    "85240": {
+      "name": "Linköping-Malmslätt",
+      "lat": 58.398,
+      "lon": 15.523
+    },
+    "97510": {
+      "name": "Uppsala Aut",
+      "lat": 59.8471,
+      "lon": 17.632
+    },
+    "95130": {
+      "name": "Örebro Flygplats",
+      "lat": 59.2289,
+      "lon": 15.0455
+    }
+  },
+  "attempts": [
+    {
+      "model": "best_match",
+      "rows": 102240,
+      "share_missing": 0.0
+    }
+  ],
+  "model_used": "best_match",
+  "file": "openmeteo_temperature_forecast.csv.gz",
+  "rows": 102240,
+  "first_utc": "2025-09-01 00:00:00+00:00",
+  "last_utc": "2026-10-31 23:00:00+00:00"
+}

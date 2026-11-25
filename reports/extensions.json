@@ -1,0 +1,330 @@
+{
+  "window": [
+    "2025-11-01",
+    "2026-10-31"
+  ],
+  "status": "Post-hoc extensions (D20, D21), evaluated on the same held-out year as D19 after its results were known; not an untouched test.",
+  "d20": {
+    "source": "Open-Meteo Previous Runs API, model best_match",
+    "temperature_forecast_error_backtest_year": {
+      "day1_raw": {
+        "n_hours": 8761,
+        "bias_c": 0.47,
+        "mae_c": 0.72,
+        "sd_c": 0.8
+      },
+      "day1_corrected": {
+        "n_hours": 8761,
+        "bias_c": 0.0,
+        "mae_c": 0.59,
+        "sd_c": 0.76
+      },
+      "day2_raw": {
+        "n_hours": 8761,
+        "bias_c": -0.72,
+        "mae_c": 0.95,
+        "sd_c": 0.92
+      },
+      "day2_corrected": {
+        "n_hours": 8761,
+        "bias_c": 0.02,
+        "mae_c": 0.69,
+        "sd_c": 0.91
+      }
+    },
+    "share_hours_bias_corrected": {
+      "day1": 1.0,
+      "day2": 1.0
+    },
+    "hours_missing_forecast_kept_observed": {
+      "forecast_day1_raw": 0,
+      "forecast_day1_corrected": 0,
+      "forecast_day2_raw": 0,
+      "forecast_day2_corrected": 0
+    },
+    "average_model": {
+      "observed": {
+        "mae_mw": 198.2,
+        "mae_ci95_mw": [
+          184.8,
+          213.3
+        ],
+        "bias_mw": -55.3,
+        "coverage_80_pct": 77.9,
+        "pct_vs_seasonal_naive": -65.1,
+        "diff_vs_seasonal_naive_ci95_mw": [
+          -477.6,
+          -279.0
+        ]
+      },
+      "forecast_day1_raw": {
+        "mae_mw": 223.1,
+        "mae_ci95_mw": [
+          206.1,
+          242.4
+        ],
+        "bias_mw": -98.6,
+        "coverage_80_pct": 73.8,
+        "pct_vs_seasonal_naive": -60.7,
+        "diff_vs_seasonal_naive_ci95_mw": [
+          -445.4,
+          -257.2
+        ]
+      },
+      "forecast_day1_corrected": {
+        "mae_mw": 209.0,
+        "mae_ci95_mw": [
+          193.3,
+          226.9
+        ],
+        "bias_mw": -58.1,
+        "coverage_80_pct": 75.7,
+        "pct_vs_seasonal_naive": -63.2,
+        "diff_vs_seasonal_naive_ci95_mw": [
+          -462.2,
+          -271.6
+        ]
+      },
+      "forecast_day2_raw": {
+        "mae_mw": 219.0,
+        "mae_ci95_mw": [
+          201.5,
+          238.2
+        ],
+        "bias_mw": 31.4,
+        "coverage_80_pct": 73.7,
+        "pct_vs_seasonal_naive": -61.4,
+        "diff_vs_seasonal_naive_ci95_mw": [
+          -449.4,
+          -261.4
+        ]
+      },
+      "forecast_day2_corrected": {
+        "mae_mw": 220.0,
+        "mae_ci95_mw": [
+          203.7,
+          237.8
+        ],
+        "bias_mw": -61.8,
+        "coverage_80_pct": 73.9,
+        "pct_vs_seasonal_naive": -61.3,
+        "diff_vs_seasonal_naive_ci95_mw": [
+          -452.6,
+          -258.7
+        ]
+      }
+    },
+    "increase_vs_observed_mw": {
+      "forecast_day1_raw": 24.9,
+      "forecast_day1_corrected": 10.8,
+      "forecast_day2_raw": 20.8,
+      "forecast_day2_corrected": 21.8
+    },
+    "day1_corrected_vs_observed_ci95_mw": [
+      3.3,
+      19.6
+    ],
+    "day2_corrected_vs_observed_ci95_mw": [
+      11.4,
+      31.9
+    ]
+  },
+  "d21": {
+    "observed_temperature": {
+      "n_days": 336,
+      "first_day": "2025-11-30",
+      "last_day": "2026-10-31",
+      "all hours": {
+        "before": {
+          "coverage_80_pct": 78.6,
+          "wilson95_on_days_pct": [
+            73.9,
+            82.6
+          ],
+          "mean_width_mw": 629.5
+        },
+        "after": {
+          "coverage_80_pct": 80.4,
+          "wilson95_on_days_pct": [
+            75.8,
+            84.3
+          ],
+          "mean_width_mw": 657.2
+        },
+        "point_mae_mw": {
+          "before": 198.7,
+          "after": 198.7
+        }
+      },
+      "actual daily peak hour": {
+        "before": {
+          "coverage_80_pct": 67.3,
+          "wilson95_on_days_pct": [
+            62.1,
+            72.1
+          ],
+          "mean_width_mw": 665.7
+        },
+        "after": {
+          "coverage_80_pct": 70.2,
+          "wilson95_on_days_pct": [
+            65.1,
+            74.9
+          ],
+          "mean_width_mw": 689.8
+        },
+        "point": {
+          "before": {
+            "mae_mw": 237.6,
+            "bias_mw": -131.9
+          },
+          "after": {
+            "mae_mw": 236.1,
+            "bias_mw": -121.8
+          }
+        }
+      },
+      "predicted daily peak hour": {
+        "before": {
+          "coverage_80_pct": 76.5,
+          "wilson95_on_days_pct": [
+            71.7,
+            80.7
+          ],
+          "mean_width_mw": 665.6
+        },
+        "after": {
+          "coverage_80_pct": 78.3,
+          "wilson95_on_days_pct": [
+            73.6,
+            82.4
+          ],
+          "mean_width_mw": 713.8
+        },
+        "point": {
+          "before": {
+            "mae_mw": 204.1,
+            "bias_mw": -33.5
+          },
+          "after": {
+            "mae_mw": 204.5,
+            "bias_mw": -19.0
+          }
+        }
+      },
+      "daily_maximum": {
+        "before": {
+          "mae_mw": 215.1,
+          "bias_mw": -89.9,
+          "share_days_under_pct": 67.6
+        },
+        "after": {
+          "mae_mw": 204.2,
+          "bias_mw": -17.4,
+          "share_days_under_pct": 55.1
+        },
+        "median_level_margin_mw": 66.4
+      },
+      "peak_hour_hit_rate_pct": 48.8,
+      "median_margin_mw": 16.9
+    },
+    "forecast_day2_corrected": {
+      "n_days": 336,
+      "first_day": "2025-11-30",
+      "last_day": "2026-10-31",
+      "all hours": {
+        "before": {
+          "coverage_80_pct": 75.4,
+          "wilson95_on_days_pct": [
+            70.4,
+            79.6
+          ],
+          "mean_width_mw": 629.3
+        },
+        "after": {
+          "coverage_80_pct": 81.4,
+          "wilson95_on_days_pct": [
+            76.7,
+            85.1
+          ],
+          "mean_width_mw": 728.1
+        },
+        "point_mae_mw": {
+          "before": 217.0,
+          "after": 217.0
+        }
+      },
+      "actual daily peak hour": {
+        "before": {
+          "coverage_80_pct": 65.5,
+          "wilson95_on_days_pct": [
+            60.2,
+            70.4
+          ],
+          "mean_width_mw": 668.1
+        },
+        "after": {
+          "coverage_80_pct": 73.2,
+          "wilson95_on_days_pct": [
+            68.2,
+            77.7
+          ],
+          "mean_width_mw": 760.4
+        },
+        "point": {
+          "before": {
+            "mae_mw": 258.3,
+            "bias_mw": -147.8
+          },
+          "after": {
+            "mae_mw": 255.4,
+            "bias_mw": -136.8
+          }
+        }
+      },
+      "predicted daily peak hour": {
+        "before": {
+          "coverage_80_pct": 72.3,
+          "wilson95_on_days_pct": [
+            67.3,
+            76.8
+          ],
+          "mean_width_mw": 666.8
+        },
+        "after": {
+          "coverage_80_pct": 79.8,
+          "wilson95_on_days_pct": [
+            75.1,
+            83.7
+          ],
+          "mean_width_mw": 770.3
+        },
+        "point": {
+          "before": {
+            "mae_mw": 221.4,
+            "bias_mw": -49.4
+          },
+          "after": {
+            "mae_mw": 220.9,
+            "bias_mw": -23.2
+          }
+        }
+      },
+      "daily_maximum": {
+        "before": {
+          "mae_mw": 232.7,
+          "bias_mw": -103.9,
+          "share_days_under_pct": 66.1
+        },
+        "after": {
+          "mae_mw": 219.7,
+          "bias_mw": -28.2,
+          "share_days_under_pct": 55.7
+        },
+        "median_level_margin_mw": 63.9
+      },
+      "peak_hour_hit_rate_pct": 50.3,
+      "median_margin_mw": 21.3
+    }
+  }
+}
