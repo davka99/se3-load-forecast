@@ -21,4 +21,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Note: the license covers the code. Data in data/raw/ comes from eSett Open Data
-(CC0 1.0) and SMHI Open Data (CC BY 4.0, source: SMHI); see README "Data".
+(CC0 1.0), SMHI Open Data (CC BY 4.0, source: SMHI) and Open-Meteo.com (CC BY 4.0,
+weather data by Open-Meteo.com); see README "Data".
