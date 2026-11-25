@@ -18,6 +18,7 @@ SURFACE = "#fcfcfb"
 TEXT = "#0b0b0b"
 TEXT_2 = "#52514e"
 GRID = "#e4e3df"
+MUTED_BAR = "#b9c6d6"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
 SOURCE = "Source: eSett Open Data (SE3 settled consumption), SMHI (air temperature). Own calculations."
@@ -159,13 +160,18 @@ def hero_week(pred: pd.DataFrame, path: Path, title: str, subtitle: str) -> None
 
 
 def mae_by_model(rows: list[dict], path: Path, title: str, subtitle: str = "",
-                 source: str = SOURCE) -> None:
-    """Horizontal bars: backtest MAE per model with 95 % block-bootstrap CI."""
+                 source: str = SOURCE, highlight: str | None = None) -> None:
+    """Horizontal bars: backtest MAE per model with 95 % block-bootstrap CI.
+
+    ``highlight`` is the label of the bar to emphasise (the others are drawn muted);
+    with None every bar is drawn in the same colour.
+    """
     rows = sorted(rows, key=lambda r: r["mae"], reverse=True)
     fig, ax = plt.subplots(figsize=(8, 3.6), dpi=150)
     fig.patch.set_facecolor(SURFACE)
     y = range(len(rows))
-    ax.barh(list(y), [r["mae"] for r in rows], color=BLUE, height=0.55)
+    colors = [BLUE if highlight is None or r["label"] == highlight else MUTED_BAR for r in rows]
+    ax.barh(list(y), [r["mae"] for r in rows], color=colors, height=0.55)
     for i, r in enumerate(rows):
         ax.plot(r["ci"], [i, i], color=TEXT, linewidth=1.2)
         ax.text(r["ci"][1] + 12, i, f"{r['mae']:.0f} MW", va="center", color=TEXT, fontsize=9)
@@ -195,14 +201,17 @@ def coverage_before_after(rows: list[dict], path: Path, title: str, subtitle: st
     fig.patch.set_facecolor(SURFACE)
     h = 0.36
     for i, r in enumerate(rows):
-        for j, (key, color, label) in enumerate((("before", BLUE, "Model intervals (D19)"),
-                                                 ("after", ORANGE, "Recalibrated online (D21)"))):
+        for j, (key, color, label) in enumerate((
+                ("before", BLUE, "The model's own intervals"),
+                ("after", ORANGE, "Recalibrated on the last 90 days"))):
             y = i + (h / 2 if j == 0 else -h / 2)
             v = r[key]["coverage_80_pct"]
-            ax.barh(y, v, height=h, color=color, label=label if i == 0 else None)
+            ax.barh(y, v, height=h * 0.92, color=color, label=label if i == 0 else None)
             lo, hi = r[key]["wilson95_on_days_pct"]
             ax.plot([lo, hi], [y, y], color=TEXT, linewidth=1.0)
-            ax.text(hi + 1, y, f"{v:.0f} %", va="center", color=TEXT, fontsize=8.5)
+            # Value inside the bar end, so it never collides with the whisker or the 80 % line.
+            ax.text(min(v, lo) - 1.5, y, f"{v:.0f} %", va="center", ha="right",
+                    color="white", fontsize=8.5, fontweight="bold")
     ax.axvline(80, color=TEXT_2, linewidth=1, linestyle=(0, (4, 3)))
     ax.text(80.8, -0.62, "nominal 80 %", color=TEXT_2, fontsize=8, ha="left", va="center")
     ax.set_yticks(range(len(rows)), [r["label"] for r in rows])

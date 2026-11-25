@@ -8,6 +8,10 @@ weather observations from SMHI. On a full held-out year its hourly error is abou
 
 ![Day-ahead forecast vs actual in the coldest week of the backtest](reports/figures/hero_cold_week.png)
 
+*How to read it: the dashed line is how much electricity SE3 actually used each hour in the coldest week of the test year; the blue line is what the model forecast at noon the day before. The shaded band is where the model expected the true value to land 8 times out of 10.*
+
+**In plain words:** an electricity company must tell the market every day at noon how much power its customers will use each hour tomorrow, and pays for every mistake. This project builds that forecast for the Stockholm–Göteborg region from the weather and the calendar, and tests it honestly on a full year it had never seen.
+
 ## Business question
 
 An electricity retailer that is balance-responsible in SE3 must submit tomorrow's hourly
@@ -20,11 +24,40 @@ settled as imbalance.
 
 ## Key findings
 
+Held-out year Nov 2025 – Oct 2026, one forecast per day issued at 12:00 the day before.
+
+- **65 % smaller error than the simple rule.** The averaged model misses by 198 MW per hour on average; "same hour last week" misses by 568 MW.
+- **Two models beat one.** Linear regression and gradient boosting err in opposite directions in cold weather, so their average is better than either.
+- **Daily peaks are forecast too low** by about 90 MW at the daily maximum; a margin learned from recent days fixes most of it.
+- **Each degree of cold adds about 200 MW** of load below 15 °C, about 11 % less than before the 2022 energy crisis.
+- **The result holds with real weather forecasts:** the error rises only to 209–220 MW per hour.
+
+![Backtest error by model](reports/figures/backtest_mae_by_model.png)
+
+*How to read it: each bar is a forecasting method; shorter is better. The black line is the 95 % uncertainty range. The highlighted bar is the model the project recommends.*
+
+The full table and the reasoning behind each number are under [Findings in detail](#findings-in-detail).
+
+## Recommendation
+
+- **Replace a seasonal-naive rule with the averaged model.** The gain is large, clearly
+  outside the uncertainty, and holds in winter, summer, weekdays, weekends and holidays.
+- **Add a peak margin learned from recent days** and recalibrate the intervals online.
+  Adding the median gap between actual and forecast daily maximum over the last 90
+  known days (about 64 MW) cuts the under-forecast of the daily maximum from −104 to
+  −28 MW, and online recalibration brings the 80 % interval from 75 % to 81 % coverage
+  (with real weather forecasts; see Extensions).
+- **Plan with ≈ 200 MW of extra load per °C of colder daily mean** below 15 °C, more at
+  17:00 (231 MW/°C) and 07:00 (219 MW/°C).
+- **Before production:** use a bias-corrected day-ahead temperature forecast as input, and
+  watch the load bias. Load in mid-2026 ran 70–240 MW above 2025 at similar temperatures, and the model
+  adapts slowly (overall bias −55 MW).
+
+## Findings in detail
+
 Held-out backtest, 1 Nov 2025 – 31 Oct 2026: 365 forecasts issued at 12:00 the day before,
 8,760 hours, models refitted every 28 days on data known at the time. Pre-registered in
 [docs/decisions.md](docs/decisions.md) (D19) and run once.
-
-![Backtest error by model](reports/figures/backtest_mae_by_model.png)
 
 | Model | MAE per hour (95 % CI) | MAPE | MASE | 80 % interval coverage |
 |---|---|---|---|---|
@@ -59,21 +92,6 @@ Held-out backtest, 1 Nov 2025 – 31 Oct 2026: 365 forecasts issued at 12:00 the
    pessimistic: real forecast errors were 0.6–0.7 °C. This was added after the backtest
    (see [Extensions](#extensions-after-the-backtest)).
 
-## Recommendation
-
-- **Replace a seasonal-naive rule with the averaged model.** The gain is large, clearly
-  outside the uncertainty, and holds in winter, summer, weekdays, weekends and holidays.
-- **Add a peak margin learned from recent days** and recalibrate the intervals online.
-  Adding the median gap between actual and forecast daily maximum over the last 90
-  known days (about 64 MW) cuts the under-forecast of the daily maximum from −104 to
-  −28 MW, and online recalibration brings the 80 % interval from 75 % to 81 % coverage
-  (with real weather forecasts; see Extensions).
-- **Plan with ≈ 200 MW of extra load per °C of colder daily mean** below 15 °C, more at
-  17:00 (231 MW/°C) and 07:00 (219 MW/°C).
-- **Before production:** use a bias-corrected day-ahead temperature forecast as input, and
-  watch the load bias. Load in mid-2026 ran 70–240 MW above 2025 at similar temperatures, and the model
-  adapts slowly (overall bias −55 MW).
-
 ## Extensions after the backtest
 
 These two analyses were added after the pre-registered backtest (D19) had been run, to
@@ -90,9 +108,11 @@ subtracts the mean error of the same hour over the previous 28 known days.
 
 ![MAE with real weather forecasts](reports/figures/real_weather_forecast_mae.png)
 
+*How to read it: the same model fed with different temperature inputs. The top bar uses the temperature that actually occurred, which no one knows at noon the day before; the others use real archived weather forecasts. Shorter is better.*
+
 | Temperature input | MAE per hour (95 % CI) | vs observed | vs same hour last week |
 |---|---|---|---|
-| Observed (D19 setup) | 198.2 MW (184.8–213.3) | – | −65.1 % |
+| Observed (main backtest) | 198.2 MW (184.8–213.3) | – | −65.1 % |
 | ~24 h runs, bias-corrected | 209.0 MW (193.3–226.9) | +10.8 MW | −63.2 % |
 | ~48 h runs, bias-corrected | 220.0 MW (203.7–237.8) | +21.8 MW | −61.3 % |
 | ~48 h runs, raw | 219.0 MW (201.5–238.2) | +20.8 MW | −61.4 % |
@@ -104,6 +124,8 @@ margin adds the median recent gap between the actual and the forecast daily maxi
 The first 29 days have no history and are left out of both columns below.
 
 ![Interval coverage before and after recalibration](reports/figures/interval_recalibration.png)
+
+*How to read it: an "80 % interval" should contain the true value 80 % of the time (dashed line). Blue bars fall short, so the model was over-confident; orange bars show the coverage after widening the intervals with the errors of the last 90 days.*
 
 | With ~48 h bias-corrected forecasts | Before | After |
 |---|---|---|
@@ -157,6 +179,8 @@ Swedish electricity use excluding grid losses to within 2.5 %. SE3 is about 63 %
 national consumption.
 
 ![Load vs temperature](reports/figures/load_vs_temperature.png)
+
+*How to read it: each dot is one working day. The colder the day (further left), the more electricity SE3 uses; below about 15 °C the relationship is close to a straight line. Orange dots (2023–2026) sit below blue ones (2019–2021): at the same temperature, less power is used since the 2022 energy crisis.*
 
 ## How to run
 
